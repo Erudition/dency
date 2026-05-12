@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: residency
+      POSTGRES_USER: payload
+      POSTGRES_PASSWORD: payload
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U payload -d residency"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  payload:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      POSTGRES_URL: postgres://payload:payload@postgres:5432/residency
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:-6c63db79af25713a563191e8}
+      PAYLOAD_PUBLIC_SERVER_URL: http://localhost:3000
+      SEED_DB: ${SEED_DB:-true}
+      NODE_OPTIONS: --no-deprecation
+    volumes:
+      # Mount source for hot-reload in dev mode
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+
+volumes:
+  pgdata:
