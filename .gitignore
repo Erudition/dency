@@ -1,5 +1,26 @@
+# Build output
 build
 dist
+.next
+
+# Dependencies
 node_modules
 package-lock.json
+
+# Environment
 .env
+
+# IDE
+.idea
+.vscode
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript build info
+tsconfig.tsbuildinfo
+
+# Next.js
+next-env.d.ts

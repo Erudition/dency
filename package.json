@@ -7,12 +7,13 @@
   "scripts": {
     "_dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
     "build": "cross-env NODE_OPTIONS=--no-deprecation next build",
-    "dev": "cross-env NODE_OPTIONS=--no-deprecation && pnpm seed && next dev",
+    "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "generate:schema": "payload-graphql generate:schema",
     "generate:types": "payload generate:types",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
-    "seed": "npm run payload migrate:fresh",
+    "migrate": "cross-env NODE_OPTIONS=--no-deprecation payload migrate",
+    "migrate:fresh": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:fresh",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start"
   },
   "dependencies": {
@@ -33,7 +34,7 @@
     "sharp": "0.32.6"
   },
   "devDependencies": {
-    "@payloadcms/graphql": "latest",
+    "@payloadcms/graphql": "3.84.1",
     "@swc/core": "^1.6.13",
     "@types/react": "19.2.9",
     "@types/react-dom": "19.2.3",
