@@ -73,7 +73,6 @@ export default buildConfig({
   plugins: [
     multiTenantPlugin<Config>({
       collections: {
-        'academic-years': {},
         'tags': {},
         'rotations': {},
         'staffing-preferences': {},

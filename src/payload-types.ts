@@ -242,19 +242,11 @@ export interface Resident {
  */
 export interface AcademicYear {
   id: number;
-  tenant?: (number | null) | Tenant;
-  /**
-   * Display label, e.g. "2026-2027"
-   */
-  title: string;
   /**
    * The calendar year the academic year begins (e.g. 2026 for 2026-2027)
    */
   startingYear: number;
-  /**
-   * Default year for the optimizer UI
-   */
-  isActive?: boolean | null;
+  title?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -680,10 +672,8 @@ export interface TenantsSelect<T extends boolean = true> {
  * via the `definition` "academic-years_select".
  */
 export interface AcademicYearsSelect<T extends boolean = true> {
-  tenant?: T;
-  title?: T;
   startingYear?: T;
-  isActive?: T;
+  title?: T;
   updatedAt?: T;
   createdAt?: T;
 }

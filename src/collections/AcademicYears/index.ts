@@ -1,29 +1,21 @@
 import type { CollectionConfig } from 'payload'
 
-import { superAdminOrTenantAdminAccess } from '@/access/superAdminOrTenantAdmin'
+import { isSuperAdminAccess } from '@/access/isSuperAdmin'
 
 export const AcademicYears: CollectionConfig = {
   slug: 'academic-years',
   access: {
-    create: superAdminOrTenantAdminAccess,
-    delete: superAdminOrTenantAdminAccess,
+    create: isSuperAdminAccess,
+    delete: isSuperAdminAccess,
     read: () => true,
-    update: superAdminOrTenantAdminAccess,
+    update: isSuperAdminAccess,
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'isActive'],
+    defaultColumns: ['title', 'startingYear'],
     group: 'Program Structure',
   },
   fields: [
-    {
-      name: 'title',
-      type: 'text',
-      required: true,
-      admin: {
-        description: 'Display label, e.g. "2026-2027"',
-      },
-    },
     {
       name: 'startingYear',
       type: 'number',
@@ -35,12 +27,19 @@ export const AcademicYears: CollectionConfig = {
       },
     },
     {
-      name: 'isActive',
-      type: 'checkbox',
-      defaultValue: false,
+      name: 'title',
+      type: 'text',
       admin: {
-        description: 'Default year for the optimizer UI',
-        position: 'sidebar',
+        hidden: true,
+      },
+      hooks: {
+        beforeValidate: [
+          ({ data, siblingData }) => {
+            const year = data?.startingYear ?? siblingData?.startingYear
+            if (year != null) return `${year}-${year + 1}`
+            return undefined
+          },
+        ],
       },
     },
   ],

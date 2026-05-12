@@ -111,10 +111,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
     const ay = await payload.create({
       collection: 'academic-years',
       data: {
-        title: `${year}-${year + 1}`,
         startingYear: year,
-        isActive: year === 2026,
-        tenant: tenantId,
       },
     })
     ayMap[year] = ay.id
