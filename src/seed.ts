@@ -1,3 +1,6 @@
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import type { Config, Payload } from 'payload'
 
 /**
@@ -70,11 +73,15 @@ const TRANSFERS_OUT: Record<string, { leaveDate: string; leaveReason: 'transferr
   'Cho, Kevin Wook Jin': { leaveDate: '2025-06-30', leaveReason: 'transferred_out' },
 }
 
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void> => {
   // Check if already seeded
   const existingUsers = await payload.find({
     collection: 'users',
-    where: { email: { equals: 'demo@payloadcms.com' } },
+    where: { email: { equals: 'Andrew.Wright@MHShealth.com' } },
     limit: 1,
   })
 
@@ -88,7 +95,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
   // ─── Tenant ───
   const mhsTenant = await payload.create({
     collection: 'tenants',
-    data: { name: 'MHS Internal Medicine', slug: 'mhs', domain: 'localhost' },
+    data: { name: 'MHS Internal Medicine', slug: 'mhs', domain: 'MHShealth.com' },
   })
   const tenantId = mhsTenant.id
 
@@ -100,14 +107,14 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
   await payload.create({
     collection: 'users',
     data: {
-      email: 'admin@mhs.mil', password: 'demo', username: 'mhs-admin',
+      email: 'Andrew.Wright@MHShealth.com', password: 'demo', username: 'mhs-admin',
       tenants: [{ roles: ['tenant-admin'], tenant: tenantId }],
     },
   })
 
   // ─── Academic Years ───
   const ayMap: Record<number, number> = {} // startingYear → record ID
-  for (const year of [2024, 2025, 2026]) {
+  for (const year of [2023, 2024, 2025, 2026]) { // added 2023 for historical data
     const ay = await payload.create({
       collection: 'academic-years',
       data: {
@@ -118,9 +125,14 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
   }
 
   // ─── Tags ───
-  // Collect unique categories from rotation data
-  const uniqueCategories = [...new Set(ROTATION_DATA.map((r) => r.category))]
-  const tagMap: Record<string, number> = {} // category name → tag ID
+  const uniqueCategories: string[] = [...new Set(ROTATION_DATA.map((r) => r.category))]
+  // Add our new Grad Requirement categories based on ACGME Balance Audit
+  const extraCategories = ['Inpatient Core', 'Outpatient Core', 'Individualized']
+  for (const cat of extraCategories) {
+    if (!uniqueCategories.includes(cat)) uniqueCategories.push(cat)
+  }
+  
+  const tagMap: Record<string, number> = {} 
 
   for (const catName of uniqueCategories) {
     const tag = await payload.create({
@@ -135,12 +147,23 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
 
   for (const r of ROTATION_DATA) {
     const tagIds = [tagMap[r.category]].filter(Boolean)
+    
+    // Auto-map extra tags based on settings and category
+    if (r.setting === 'Inpatient' || r.setting === 'Critical Care') {
+      tagIds.push(tagMap['Inpatient Core'])
+    }
+    if (r.setting === 'Outpatient') {
+      tagIds.push(tagMap['Outpatient Core'])
+    }
+    if (r.category === 'Elective') {
+      tagIds.push(tagMap['Individualized'])
+    }
+
     const rotation = await payload.create({
       collection: 'rotations',
       data: {
         title: r.title,
-        codename: r.codename,
-        abbreviation: r.abbr,
+        codename: r.codename, // we use short identifier for codename now per instruction
         intensity: r.intensity,
         outpatientPercentage: settingToOutpatient[r.setting] ?? 0,
         color: r.color,
@@ -158,14 +181,9 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
     const rotId = rotationMap[r.codename]
     if (!rotId) continue
 
-    // Seed the min and max as preference ranks 1 (preferred) and max rank
-    // Rank 1 = minimum staffing (most preferred), highest rank = maximum
     const combos: Array<{ interns: number; seniors: number; rank: number }> = []
-
-    // Add the minimum combo as rank 1
     combos.push({ interns: r.minInterns, seniors: r.minSeniors, rank: 1 })
 
-    // Add the maximum combo as rank 2 (if different from min)
     if (r.maxInterns !== r.minInterns || r.maxSeniors !== r.minSeniors) {
       combos.push({ interns: r.maxInterns, seniors: r.maxSeniors, rank: 2 })
     }
@@ -185,44 +203,28 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
     }
   }
 
-  // ─── Annual Requirements (for AY 2026) ───
-  // Build requirements from the rotation data's pgy1/pgy2/pgy3 fields,
-  // aggregated by category (tag). One entry per tag.
-  const reqByTag: Record<string, { pgy1: number; pgy2: number; pgy3: number }> = {}
+  // ─── Graduation Requirements (Curriculum Rules) ───
+  // Based on MHS Curriculum.md "ACGME Balance Audit"
+  const gradReqsData = [
+    { tag: 'Inpatient Core', source: 'acgme', minimum: 40, ideal: 40 }, // 10 months
+    { tag: 'ICU', source: 'acgme', minimum: 8, maximum: 24, ideal: 16 }, // Min 2, max 6 months, 4 exact
+    { tag: 'Outpatient Core', source: 'acgme', minimum: 40, ideal: 44 }, // Min 10 months, 44 weeks derived
+    { tag: 'Night Float', source: 'mhs', minimum: 12, maximum: 12, ideal: 12 }, // 12 weeks exact
+    { tag: 'Individualized', source: 'acgme', minimum: 24, ideal: 24 }, // Min 6 months
+  ]
 
-  for (const r of ROTATION_DATA) {
-    const cat = r.category
-    if (!reqByTag[cat]) reqByTag[cat] = { pgy1: 0, pgy2: 0, pgy3: 0 }
-
-    // Take the max across rotations in the same category
-    const pgy1 = (r as any).pgy1 ?? 0
-    const pgy2 = (r as any).pgy2 ?? 0
-    const pgy3 = (r as any).pgy3 ?? 0
-
-    reqByTag[cat].pgy1 = Math.max(reqByTag[cat].pgy1, pgy1)
-    reqByTag[cat].pgy2 = Math.max(reqByTag[cat].pgy2, pgy2)
-    reqByTag[cat].pgy3 = Math.max(reqByTag[cat].pgy3, pgy3)
-  }
-
-  for (const [catName, ideals] of Object.entries(reqByTag)) {
-    const tagId = tagMap[catName]
+  for (const req of gradReqsData) {
+    const tagId = tagMap[req.tag]
     if (!tagId) continue
-
-    // Only create a requirement if there's at least one nonzero ideal
-    const maxIdeal = Math.max(ideals.pgy1, ideals.pgy2, ideals.pgy3)
-    if (maxIdeal === 0) continue
-
     await payload.create({
-      collection: 'annual-requirements',
+      collection: 'grad-requirements',
       data: {
-        academicYear: ayMap[2026],
+        startYear: 2026,
         tag: tagId,
-        source: 'mhs',
-        // For now, use the max ideal as the minimum (matching current engine behavior)
-        minimum: maxIdeal,
-        pgy1Ideal: ideals.pgy1 || undefined,
-        pgy2Ideal: ideals.pgy2 || undefined,
-        pgy3Ideal: ideals.pgy3 || undefined,
+        source: req.source as 'acgme' | 'mhs' | 'program',
+        minimum: req.minimum,
+        maximum: req.maximum,
+        ideal: req.ideal,
         tenant: tenantId,
       },
     })
@@ -261,10 +263,115 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
       residentMap[fullName] = resident.id
     }
   }
+  
+  // ─── Historical Schedules & Assignments ───
+  try {
+    const schedulesPath = path.resolve(__dirname, '../../residency-optimizer/specification/historical_schedules_grid_v2.json')
+    const schedulesRaw = fs.readFileSync(schedulesPath, 'utf-8')
+    const historicalSchedules = JSON.parse(schedulesRaw)
+    
+    for (const [yearStr, residentsObj] of Object.entries(historicalSchedules)) {
+      const yearNum = parseInt(yearStr, 10)
+      if (!ayMap[yearNum]) continue
+      
+      const schedule = await payload.create({
+        collection: 'schedules',
+        data: {
+          title: `Historical Schedule ${yearStr}`,
+          academicYear: ayMap[yearNum],
+          _status: 'published',
+          tenant: tenantId,
+        }
+      })
+      
+      for (const [residentName, weeks] of Object.entries(residentsObj as Record<string, any[]>)) {
+        const residentId = residentMap[residentName]
+        if (!residentId) continue
+        
+        for (let w = 0; w < weeks.length; w++) {
+          const codename = weeks[w]
+          if (!codename) continue // null assignment
+          const rotId = rotationMap[codename]
+          if (!rotId) continue
+          
+          await payload.create({
+            collection: 'schedule-assignments',
+            data: {
+              schedule: schedule.id,
+              resident: residentId,
+              week: w + 1,
+              rotation: rotId,
+              tenant: tenantId,
+            }
+          })
+        }
+      }
+    }
+  } catch (e) {
+    payload.logger.error(`Error loading historical schedules: ${e}`)
+  }
+  
+  // ─── Transfer Credits ───
+  try {
+    const creditsPath = path.resolve(__dirname, '../../residency-optimizer/specification/resident_subspecialty_data_v2.json')
+    const creditsRaw = fs.readFileSync(creditsPath, 'utf-8')
+    const subspecialtyData = JSON.parse(creditsRaw)
+    
+    const parseSubspecialtyTag = (text: string): string | null => {
+        text = text.toLowerCase()
+        if (text.includes('id')) return 'Infectious Disease'
+        if (text.includes('neph')) return 'Nephrology'
+        if (text.includes('em')) return 'Emergency'
+        if (text.includes('pulm')) return 'Pulmonology'
+        if (text.includes('cards')) return 'Cardiology'
+        if (text.includes('neuro')) return 'Neurology'
+        if (text.includes('gi')) return 'Gastroenterology'
+        if (text.includes('onc')) return 'Heme/Onc'
+        if (text.includes('rheum')) return 'Rheumatology'
+        if (text.includes('endo')) return 'Endocrinology'
+        if (text.includes('geri')) return 'Geriatrics'
+        if (text.includes('icu') || text.includes('ccm')) return 'ICU'
+        if (text.includes('ward')) return 'Wards'
+        return null
+    }
+
+    for (const [residentName, dataObj] of Object.entries(subspecialtyData)) {
+      const residentId = residentMap[residentName]
+      if (!residentId) continue
+      
+      const completed = (dataObj as any).Completed as string[]
+      if (!completed || !Array.isArray(completed)) continue
+      
+      for (const comp of completed) {
+         // Example: "IM ID (2w)"
+         const match = comp.match(/(.*)\s+\((\d+)w\)/)
+         if (match) {
+             const namePart = match[1]
+             const weeks = parseInt(match[2], 10)
+             const cat = parseSubspecialtyTag(namePart)
+             if (cat && tagMap[cat]) {
+                 await payload.create({
+                     collection: 'transfer-credits',
+                     data: {
+                         resident: residentId,
+                         tag: tagMap[cat],
+                         weeks: weeks,
+                         fromProgram: 'Unknown Previous Program',
+                         notes: `Transferred: ${comp}`,
+                         tenant: tenantId,
+                     }
+                 })
+             }
+         }
+      }
+    }
+  } catch (e) {
+    payload.logger.error(`Error loading transfer credits: ${e}`)
+  }
 
   payload.logger.info(
     `Seed completed: ${Object.keys(rotationMap).length} rotations, ` +
     `${uniqueCategories.length} tags, ` +
-    `${Object.keys(residentMap).length} residents.`,
+    `${Object.keys(residentMap).length} residents.`
   )
 }

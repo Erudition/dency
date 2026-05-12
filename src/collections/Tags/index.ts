@@ -12,8 +12,11 @@ export const Tags: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'retired'],
+    defaultColumns: ['title', 'description', 'retired'],
     group: 'Program Structure',
+    pagination: {
+      defaultLimit: 100,
+    },
   },
   fields: [
     {
@@ -22,6 +25,13 @@ export const Tags: CollectionConfig = {
       required: true,
       admin: {
         description: 'Educational/audit bucket name, e.g. "Wards", "ICU", "Cardiology"',
+      },
+    },
+    {
+      name: 'description',
+      type: 'textarea',
+      admin: {
+        description: 'Hint for what rotations apply to the tag',
       },
     },
     {

@@ -12,8 +12,11 @@ export const Rotations: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'codename', 'abbreviation', 'intensity', 'outpatientPercentage'],
+    defaultColumns: ['title', 'codename', 'intensity', 'outpatientPercentage'],
     group: 'Program Structure',
+    pagination: {
+      defaultLimit: 100,
+    },
   },
   fields: [
     {
@@ -34,14 +37,7 @@ export const Rotations: CollectionConfig = {
         description: 'Machine identifier, e.g. MICU, RED. Used as the key in the scheduling engine.',
       },
     },
-    {
-      name: 'abbreviation',
-      type: 'text',
-      required: true,
-      admin: {
-        description: 'Short UI code, e.g. "ICU"',
-      },
-    },
+
     {
       name: 'intensity',
       type: 'number',

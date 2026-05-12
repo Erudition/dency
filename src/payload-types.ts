@@ -259,6 +259,10 @@ export interface Tag {
    */
   title: string;
   /**
+   * Hint for what rotations apply to the tag
+   */
+  description?: string | null;
+  /**
    * Soft-delete flag. Retired tags are hidden from new requirement creation.
    */
   retired?: boolean | null;
@@ -280,10 +284,6 @@ export interface Rotation {
    * Machine identifier, e.g. MICU, RED. Used as the key in the scheduling engine.
    */
   codename: string;
-  /**
-   * Short UI code, e.g. "ICU"
-   */
-  abbreviation: string;
   /**
    * Workload score (0 = no clinical work, 5 = maximum intensity)
    */
@@ -318,6 +318,7 @@ export interface Rotation {
 export interface StaffingPreference {
   id: number;
   tenant?: (number | null) | Tenant;
+  title?: string | null;
   academicYear: number | AcademicYear;
   rotation: number | Rotation;
   /**
@@ -681,6 +682,7 @@ export interface AcademicYearsSelect<T extends boolean = true> {
 export interface TagsSelect<T extends boolean = true> {
   tenant?: T;
   title?: T;
+  description?: T;
   retired?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -693,7 +695,6 @@ export interface RotationsSelect<T extends boolean = true> {
   tenant?: T;
   title?: T;
   codename?: T;
-  abbreviation?: T;
   intensity?: T;
   outpatientPercentage?: T;
   color?: T;
@@ -709,6 +710,7 @@ export interface RotationsSelect<T extends boolean = true> {
  */
 export interface StaffingPreferencesSelect<T extends boolean = true> {
   tenant?: T;
+  title?: T;
   academicYear?: T;
   rotation?: T;
   internCount?: T;

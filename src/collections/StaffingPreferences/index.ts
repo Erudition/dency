@@ -11,11 +11,39 @@ export const StaffingPreferences: CollectionConfig = {
     update: superAdminOrTenantAdminAccess,
   },
   admin: {
-    useAsTitle: 'id',
-    defaultColumns: ['academicYear', 'rotation', 'internCount', 'seniorCount', 'preferenceRank'],
+    useAsTitle: 'title',
+    defaultColumns: ['title', 'rotation', 'academicYear', 'internCount', 'seniorCount', 'preferenceRank'],
     group: 'Requirements & Staffing',
+    pagination: {
+      defaultLimit: 100,
+    },
+  },
+  hooks: {
+    beforeChange: [
+      async ({ data, req }) => {
+        if (data?.rotation && data?.academicYear) {
+          try {
+            const rotation = await req.payload.findByID({ collection: 'rotations', id: data.rotation })
+            const year = await req.payload.findByID({ collection: 'academic-years', id: data.academicYear })
+            if (rotation && year) {
+              data.title = `${rotation.title} (${year.title})`
+            }
+          } catch (e) {
+            // ignore if relation not found
+          }
+        }
+        return data
+      },
+    ],
   },
   fields: [
+    {
+      name: 'title',
+      type: 'text',
+      admin: {
+        hidden: true,
+      },
+    },
     {
       name: 'academicYear',
       type: 'relationship',
