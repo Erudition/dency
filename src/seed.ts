@@ -81,7 +81,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
   // Check if already seeded
   const existingUsers = await payload.find({
     collection: 'users',
-    where: { email: { equals: 'Andrew.Wright@MHShealth.com' } },
+    where: { email: { equals: 'demo@payloadcms.com' } },
     limit: 1,
   })
 
