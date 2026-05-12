@@ -242,9 +242,6 @@ export interface Resident {
  */
 export interface AcademicYear {
   id: number;
-  /**
-   * The calendar year the academic year begins (e.g. 2026 for 2026-2027)
-   */
   startingYear: number;
   title?: string | null;
   updatedAt: string;

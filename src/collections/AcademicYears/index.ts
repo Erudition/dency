@@ -15,6 +15,24 @@ export const AcademicYears: CollectionConfig = {
     defaultColumns: ['title', 'startingYear'],
     group: 'Program Structure',
   },
+  hooks: {
+    beforeValidate: [
+      async ({ data, req, operation }) => {
+        if (operation === 'create') {
+          const existing = await req.payload.find({
+            collection: 'academic-years',
+            sort: '-startingYear',
+            limit: 1,
+          })
+          const maxYear = existing.docs[0]?.startingYear
+          const nextYear = maxYear != null ? maxYear + 1 : new Date().getFullYear()
+          data!.startingYear = nextYear
+          data!.title = `AY${nextYear}`
+        }
+        return data
+      },
+    ],
+  },
   fields: [
     {
       name: 'startingYear',
@@ -23,7 +41,7 @@ export const AcademicYears: CollectionConfig = {
       unique: true,
       index: true,
       admin: {
-        description: 'The calendar year the academic year begins (e.g. 2026 for 2026-2027)',
+        hidden: true,
       },
     },
     {
@@ -31,15 +49,6 @@ export const AcademicYears: CollectionConfig = {
       type: 'text',
       admin: {
         hidden: true,
-      },
-      hooks: {
-        beforeValidate: [
-          ({ data, siblingData }) => {
-            const year = data?.startingYear ?? siblingData?.startingYear
-            if (year != null) return `${year}-${year + 1}`
-            return undefined
-          },
-        ],
       },
     },
   ],
