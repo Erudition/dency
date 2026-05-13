@@ -205,27 +205,91 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
   }
 
   // ─── Graduation Requirements (Curriculum Rules) ───
-  // Based on MHS Curriculum.md "ACGME Balance Audit"
-  const gradReqsData = [
-    { tag: 'Inpatient Core', source: 'acgme', minimum: 40, ideal: 40 }, // 10 months
-    { tag: 'ICU', source: 'acgme', minimum: 8, maximum: 24, ideal: 16 }, // Min 2, max 6 months, 4 exact
-    { tag: 'Outpatient Core', source: 'acgme', minimum: 40, ideal: 44 }, // Min 10 months, 44 weeks derived
-    { tag: 'Night Float', source: 'mhs', minimum: 12, maximum: 12, ideal: 12 }, // 12 weeks exact
-    { tag: 'Individualized', source: 'acgme', minimum: 24, ideal: 24 }, // Min 6 months
+  // Option C: per-PGY-year minimums from MHS Curriculum.md are modeled as
+  // milestone ideals (pgy1Ideal, pgy2Ideal, pgy3Ideal) on cumulative grad
+  // requirements. The hard minimum is the total across residency.
+  //
+  // Two tiers:
+  //  1. ACGME structural time allocations (aggregate categories)
+  //  2. Rotation-specific requirements with PGY milestones
+
+  const gradReqsData: Array<{
+    tag: string
+    source: 'acgme' | 'mhs' | 'program'
+    minimum: number
+    maximum?: number
+    ideal?: number
+    pgy1Ideal?: number
+    pgy2Ideal?: number
+    pgy3Ideal?: number
+  }> = [
+    // ── Tier 1: ACGME Structural Time Allocations ──
+    { tag: 'Inpatient Core', source: 'acgme', minimum: 40, ideal: 40 },           // 10 months combined wards+ICU
+    { tag: 'Outpatient Core', source: 'acgme', minimum: 40, ideal: 44 },          // 10 months ambulatory
+    { tag: 'Individualized', source: 'acgme', minimum: 24, ideal: 24 },           // 6 months elective/research
+
+    // ── Tier 2: Rotation-Specific Requirements (from MHS Curriculum.md) ──
+    // Core Inpatient
+    { tag: 'Wards', source: 'program', minimum: 36, ideal: 36,                    // 16+12+8 = 36 weeks
+      pgy1Ideal: 16, pgy2Ideal: 12, pgy3Ideal: 8 },
+    { tag: 'ICU', source: 'acgme', minimum: 8, maximum: 24, ideal: 16,            // Min 2mo, max 6mo, target 4mo
+      pgy1Ideal: 8, pgy2Ideal: 4, pgy3Ideal: 4 },
+    { tag: 'Night Float', source: 'mhs', minimum: 12, maximum: 12, ideal: 12,     // 4 weeks per year, exact
+      pgy1Ideal: 4, pgy2Ideal: 4, pgy3Ideal: 4 },
+    { tag: 'Emergency', source: 'acgme', minimum: 4, ideal: 4,                    // PGY-2/3 only
+      pgy1Ideal: 0, pgy2Ideal: 2, pgy3Ideal: 2 },
+
+    // Subspecialties (The "Big 9" ABIM + multidisciplinary)
+    { tag: 'Cardiology', source: 'acgme', minimum: 4, ideal: 4,
+      pgy1Ideal: 2, pgy2Ideal: 0, pgy3Ideal: 2 },
+    { tag: 'Pulmonology', source: 'acgme', minimum: 4, ideal: 4,
+      pgy1Ideal: 2, pgy2Ideal: 2, pgy3Ideal: 0 },
+    { tag: 'Infectious Disease', source: 'acgme', minimum: 2, ideal: 2,
+      pgy1Ideal: 2 },
+    { tag: 'Nephrology', source: 'acgme', minimum: 2, ideal: 2,
+      pgy1Ideal: 2 },
+    { tag: 'Neurology', source: 'acgme', minimum: 2, ideal: 2,
+      pgy2Ideal: 2 },
+    { tag: 'Gastroenterology', source: 'acgme', minimum: 2, ideal: 2,
+      pgy2Ideal: 2 },
+    { tag: 'Rheumatology', source: 'acgme', minimum: 2, ideal: 2,
+      pgy2Ideal: 2 },
+    { tag: 'Endocrinology', source: 'acgme', minimum: 2, ideal: 2,
+      pgy2Ideal: 2 },
+
+    // Mandatory Multidisciplinary (ACGME §IV.B.1.b)
+    { tag: 'Geriatrics', source: 'acgme', minimum: 2, ideal: 2,
+      pgy3Ideal: 2 },
+    { tag: 'Addiction Medicine', source: 'acgme', minimum: 2, ideal: 2,
+      pgy3Ideal: 2 },
+    { tag: 'Palliative Care', source: 'acgme', minimum: 2, ideal: 2,
+      pgy3Ideal: 2 },
+    { tag: 'Heme/Onc', source: 'acgme', minimum: 2, ideal: 2,
+      pgy3Ideal: 2 },
+
+    // MHS-specific
+    { tag: 'Senior Track', source: 'program', minimum: 4, ideal: 4,               // Jr Hospitalist or NIMA block
+      pgy3Ideal: 4 },
   ]
 
   for (const req of gradReqsData) {
     const tagId = tagMap[req.tag]
-    if (!tagId) continue
+    if (!tagId) {
+      payload.logger.warn(`Skipping grad requirement: tag "${req.tag}" not found`)
+      continue
+    }
     await payload.create({
       collection: 'grad-requirements',
       data: {
         academicYear: ayMap[2026],
         tag: tagId,
-        source: req.source as 'acgme' | 'mhs' | 'program',
+        source: req.source,
         minimum: req.minimum,
         maximum: req.maximum,
         ideal: req.ideal,
+        pgy1Ideal: req.pgy1Ideal,
+        pgy2Ideal: req.pgy2Ideal,
+        pgy3Ideal: req.pgy3Ideal,
         tenant: tenantId,
       },
     })
