@@ -14,20 +14,27 @@ export const AcademicYears: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'startingYear'],
     group: 'Program Structure',
+    pagination: {
+      defaultLimit: 100,
+    },
   },
   hooks: {
     beforeValidate: [
       async ({ data, req, operation }) => {
-        if (operation === 'create') {
-          const existing = await req.payload.find({
-            collection: 'academic-years',
-            sort: '-startingYear',
-            limit: 1,
-          })
-          const maxYear = existing.docs[0]?.startingYear
-          const nextYear = maxYear != null ? maxYear + 1 : new Date().getFullYear()
-          data!.startingYear = nextYear
-          data!.title = `AY${nextYear}`
+        if (operation === 'create' && data) {
+          if (data.startingYear == null) {
+            const existing = await req.payload.find({
+              collection: 'academic-years',
+              sort: '-startingYear',
+              limit: 1,
+            })
+            const maxYear = existing.docs[0]?.startingYear
+            const nextYear = maxYear != null ? maxYear + 1 : new Date().getFullYear()
+            data.startingYear = nextYear
+          }
+          if (data.startingYear != null) {
+            data.title = `AY${data.startingYear}`
+          }
         }
         return data
       },
@@ -50,6 +57,24 @@ export const AcademicYears: CollectionConfig = {
       admin: {
         hidden: true,
       },
+    },
+    {
+      name: 'gradRequirements',
+      type: 'join',
+      collection: 'grad-requirements',
+      on: 'academicYear',
+    },
+    {
+      name: 'annualRequirements',
+      type: 'join',
+      collection: 'annual-requirements',
+      on: 'academicYear',
+    },
+    {
+      name: 'staffingPreferences',
+      type: 'join',
+      collection: 'staffing-preferences',
+      on: 'academicYear',
     },
   ],
 }

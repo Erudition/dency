@@ -14,6 +14,9 @@ export const Schedules: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'academicYear', '_status'],
     group: 'Scheduling',
+    pagination: {
+      defaultLimit: 100,
+    },
   },
   versions: {
     drafts: true,
@@ -29,6 +32,12 @@ export const Schedules: CollectionConfig = {
       type: 'relationship',
       relationTo: 'academic-years',
       required: true,
+    },
+    {
+      name: 'scheduleAssignments',
+      type: 'join',
+      collection: 'schedule-assignments',
+      on: 'schedule',
     },
   ],
 }

@@ -15,6 +15,10 @@ export const AvoidanceRules: CollectionConfig = {
     defaultColumns: ['resident', 'avoidedResident'],
     group: 'People',
     description: 'Pairs of residents who should not be co-scheduled.',
+    hidden: true,
+    pagination: {
+      defaultLimit: 100,
+    },
   },
   fields: [
     {

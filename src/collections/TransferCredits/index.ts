@@ -16,6 +16,10 @@ export const TransferCredits: CollectionConfig = {
     group: 'People',
     description:
       'Educational credit a transfer-in resident brings from their prior program, per tag.',
+    hidden: true,
+    pagination: {
+      defaultLimit: 100,
+    },
   },
   fields: [
     {

@@ -92,7 +92,8 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
 
   payload.logger.info('Starting MHS seed...')
 
-  // ─── Tenant ───
+  try {
+    // ─── Tenant ───
   const mhsTenant = await payload.create({
     collection: 'tenants',
     data: { name: 'MHS Internal Medicine', slug: 'mhs', domain: 'MHShealth.com' },
@@ -100,7 +101,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
   const tenantId = mhsTenant.id
 
   // ─── Users ───
-  await payload.create({
+  const superAdmin = await payload.create({
     collection: 'users',
     data: { email: 'demo@payloadcms.com', password: 'demo', roles: ['super-admin'] },
   })
@@ -219,7 +220,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
     await payload.create({
       collection: 'grad-requirements',
       data: {
-        startYear: 2026,
+        academicYear: ayMap[2026],
         tag: tagId,
         source: req.source as 'acgme' | 'mhs' | 'program',
         minimum: req.minimum,
@@ -288,22 +289,27 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
         const residentId = residentMap[residentName]
         if (!residentId) continue
         
+        const pool = (payload.db as any).pool
+        const values: any[] = []
+        const placeholders: string[] = []
+        let idx = 1
+        
         for (let w = 0; w < weeks.length; w++) {
           const codename = weeks[w]
-          if (!codename) continue // null assignment
+          if (!codename) continue
           const rotId = rotationMap[codename]
           if (!rotId) continue
           
-          await payload.create({
-            collection: 'schedule-assignments',
-            data: {
-              schedule: schedule.id,
-              resident: residentId,
-              week: w + 1,
-              rotation: rotId,
-              tenant: tenantId,
-            }
-          })
+          placeholders.push(`($${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++})`)
+          values.push(schedule.id, residentId, w + 1, rotId, tenantId)
+        }
+        
+        if (placeholders.length > 0) {
+          await pool.query(
+            `INSERT INTO schedule_assignments (schedule_id, resident_id, week, rotation_id, tenant_id)
+             VALUES ${placeholders.join(', ')}`,
+            values
+          )
         }
       }
     }
@@ -374,4 +380,8 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
     `${uniqueCategories.length} tags, ` +
     `${Object.keys(residentMap).length} residents.`
   )
+  } catch (e) {
+    payload.logger.error(`FATAL ERROR IN SEED: ${e}`)
+    console.error(e)
+  }
 }

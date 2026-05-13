@@ -14,6 +14,7 @@ export const StaffingPreferences: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'rotation', 'academicYear', 'internCount', 'seniorCount', 'preferenceRank'],
     group: 'Requirements & Staffing',
+    hidden: true,
     pagination: {
       defaultLimit: 100,
     },

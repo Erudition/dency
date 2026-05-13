@@ -15,6 +15,10 @@ export const ScheduleAssignments: CollectionConfig = {
     defaultColumns: ['schedule', 'resident', 'week', 'rotation', 'locked'],
     group: 'Scheduling',
     description: 'Individual assignment cells within a schedule grid.',
+    hidden: true,
+    pagination: {
+      defaultLimit: 100,
+    },
   },
   fields: [
     {

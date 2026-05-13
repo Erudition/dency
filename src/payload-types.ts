@@ -85,7 +85,20 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    'academic-years': {
+      gradRequirements: 'grad-requirements';
+      annualRequirements: 'annual-requirements';
+      staffingPreferences: 'staffing-preferences';
+    };
+    residents: {
+      avoidanceRules: 'avoidance-rules';
+      transferCredits: 'transfer-credits';
+    };
+    schedules: {
+      scheduleAssignments: 'schedule-assignments';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
@@ -233,6 +246,16 @@ export interface Resident {
    * Reason for departure
    */
   leaveReason?: ('graduated' | 'transferred_out' | 'dismissed' | 'on_leave') | null;
+  avoidanceRules?: {
+    docs?: (number | AvoidanceRule)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  transferCredits?: {
+    docs?: (number | TransferCredit)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -244,6 +267,66 @@ export interface AcademicYear {
   id: number;
   startingYear: number;
   title?: string | null;
+  gradRequirements?: {
+    docs?: (number | GradRequirement)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  annualRequirements?: {
+    docs?: (number | AnnualRequirement)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  staffingPreferences?: {
+    docs?: (number | StaffingPreference)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Cumulative graduation requirements effective-dated to an academic year. Resolved against the resident’s matriculation year (latest rule where effectiveYear ≤ startYear).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "grad-requirements".
+ */
+export interface GradRequirement {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  /**
+   * Effective year: this rule applies to residents whose matriculation year is at or after this academic year, until a newer rule supersedes it.
+   */
+  academicYear: number | AcademicYear;
+  tag: number | Tag;
+  /**
+   * Origin of this requirement (ACGME mandate, MHS policy, or program-specific)
+   */
+  source: 'acgme' | 'mhs' | 'program';
+  /**
+   * Hard floor (total weeks across residency)
+   */
+  minimum?: number | null;
+  /**
+   * Hard ceiling (total weeks across residency)
+   */
+  maximum?: number | null;
+  /**
+   * Soft goal (total weeks across residency)
+   */
+  ideal?: number | null;
+  /**
+   * Cumulative PGY-1 milestone ideal (weeks by end of PGY-1)
+   */
+  pgy1Ideal?: number | null;
+  /**
+   * Cumulative PGY-2 milestone ideal (weeks by end of PGY-2)
+   */
+  pgy2Ideal?: number | null;
+  /**
+   * Cumulative PGY-3 milestone ideal (weeks by end of PGY-3)
+   */
+  pgy3Ideal?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -266,6 +349,73 @@ export interface Tag {
    * Soft-delete flag. Retired tags are hidden from new requirement creation.
    */
   retired?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Annual operational requirements effective-dated to an academic year. Resolved against the schedule year (latest rule where effectiveYear ≤ scheduleYear).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "annual-requirements".
+ */
+export interface AnnualRequirement {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  academicYear: number | AcademicYear;
+  tag: number | Tag;
+  /**
+   * Origin of this requirement (ACGME mandate, MHS policy, or program-specific)
+   */
+  source: 'acgme' | 'mhs' | 'program';
+  /**
+   * Hard floor (weeks). Violation if not met.
+   */
+  minimum?: number | null;
+  /**
+   * Hard ceiling (weeks). Violation if exceeded.
+   */
+  maximum?: number | null;
+  /**
+   * Soft goal (weeks). Closer is better, not a violation.
+   */
+  ideal?: number | null;
+  /**
+   * PGY-1 ideal weeks for this tag in this year
+   */
+  pgy1Ideal?: number | null;
+  /**
+   * PGY-2 ideal weeks for this tag in this year
+   */
+  pgy2Ideal?: number | null;
+  /**
+   * PGY-3 ideal weeks for this tag in this year
+   */
+  pgy3Ideal?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "staffing-preferences".
+ */
+export interface StaffingPreference {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  title?: string | null;
+  academicYear: number | AcademicYear;
+  rotation: number | Rotation;
+  /**
+   * Number of interns (PGY-1) in this staffing configuration
+   */
+  internCount: number;
+  /**
+   * Number of seniors (PGY-2/3) in this staffing configuration
+   */
+  seniorCount: number;
+  /**
+   * Lower = more preferred. Rank 1 is the most desirable staffing combo.
+   */
+  preferenceRank: number;
   updatedAt: string;
   createdAt: string;
 }
@@ -312,114 +462,16 @@ export interface Rotation {
   createdAt: string;
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "staffing-preferences".
- */
-export interface StaffingPreference {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  title?: string | null;
-  academicYear: number | AcademicYear;
-  rotation: number | Rotation;
-  /**
-   * Number of interns (PGY-1) in this staffing configuration
-   */
-  internCount: number;
-  /**
-   * Number of seniors (PGY-2/3) in this staffing configuration
-   */
-  seniorCount: number;
-  /**
-   * Lower = more preferred. Rank 1 is the most desirable staffing combo.
-   */
-  preferenceRank: number;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Operational requirements for a specific academic year + tag. One entry per tag × year. Min/max apply uniformly across all PGY levels. PGY-specific ideals are soft goals for scoring.
+ * Pairs of residents who should not be co-scheduled.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "annual-requirements".
+ * via the `definition` "avoidance-rules".
  */
-export interface AnnualRequirement {
+export interface AvoidanceRule {
   id: number;
   tenant?: (number | null) | Tenant;
-  academicYear: number | AcademicYear;
-  tag: number | Tag;
-  /**
-   * Origin of this requirement (ACGME mandate, MHS policy, or program-specific)
-   */
-  source: 'acgme' | 'mhs' | 'program';
-  /**
-   * Hard floor (weeks). Violation if not met.
-   */
-  minimum?: number | null;
-  /**
-   * Hard ceiling (weeks). Violation if exceeded.
-   */
-  maximum?: number | null;
-  /**
-   * Soft goal (weeks). Closer is better, not a violation.
-   */
-  ideal?: number | null;
-  /**
-   * PGY-1 ideal weeks for this tag in this year
-   */
-  pgy1Ideal?: number | null;
-  /**
-   * PGY-2 ideal weeks for this tag in this year
-   */
-  pgy2Ideal?: number | null;
-  /**
-   * PGY-3 ideal weeks for this tag in this year
-   */
-  pgy3Ideal?: number | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Cumulative graduation requirements tied to a class entry year. Tracks total weeks across the full residency for a given tag.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "grad-requirements".
- */
-export interface GradRequirement {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  /**
-   * The class entry year (e.g. 2026 for the class starting July 2026)
-   */
-  startYear: number;
-  tag: number | Tag;
-  /**
-   * Origin of this requirement (ACGME mandate, MHS policy, or program-specific)
-   */
-  source: 'acgme' | 'mhs' | 'program';
-  /**
-   * Hard floor (total weeks across residency)
-   */
-  minimum?: number | null;
-  /**
-   * Hard ceiling (total weeks across residency)
-   */
-  maximum?: number | null;
-  /**
-   * Soft goal (total weeks across residency)
-   */
-  ideal?: number | null;
-  /**
-   * Cumulative PGY-1 milestone ideal (weeks by end of PGY-1)
-   */
-  pgy1Ideal?: number | null;
-  /**
-   * Cumulative PGY-2 milestone ideal (weeks by end of PGY-2)
-   */
-  pgy2Ideal?: number | null;
-  /**
-   * Cumulative PGY-3 milestone ideal (weeks by end of PGY-3)
-   */
-  pgy3Ideal?: number | null;
+  resident: number | Resident;
+  avoidedResident: number | Resident;
   updatedAt: string;
   createdAt: string;
 }
@@ -453,20 +505,6 @@ export interface TransferCredit {
   createdAt: string;
 }
 /**
- * Pairs of residents who should not be co-scheduled.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "avoidance-rules".
- */
-export interface AvoidanceRule {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  resident: number | Resident;
-  avoidedResident: number | Resident;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "schedules".
  */
@@ -475,6 +513,11 @@ export interface Schedule {
   tenant?: (number | null) | Tenant;
   title: string;
   academicYear: number | AcademicYear;
+  scheduleAssignments?: {
+    docs?: (number | ScheduleAssignment)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -672,6 +715,9 @@ export interface TenantsSelect<T extends boolean = true> {
 export interface AcademicYearsSelect<T extends boolean = true> {
   startingYear?: T;
   title?: T;
+  gradRequirements?: T;
+  annualRequirements?: T;
+  staffingPreferences?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -743,7 +789,7 @@ export interface AnnualRequirementsSelect<T extends boolean = true> {
  */
 export interface GradRequirementsSelect<T extends boolean = true> {
   tenant?: T;
-  startYear?: T;
+  academicYear?: T;
   tag?: T;
   source?: T;
   minimum?: T;
@@ -770,6 +816,8 @@ export interface ResidentsSelect<T extends boolean = true> {
   joinDate?: T;
   leaveDate?: T;
   leaveReason?: T;
+  avoidanceRules?: T;
+  transferCredits?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -806,6 +854,7 @@ export interface SchedulesSelect<T extends boolean = true> {
   tenant?: T;
   title?: T;
   academicYear?: T;
+  scheduleAssignments?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

@@ -51,6 +51,9 @@ const Users: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'email',
+    pagination: {
+      defaultLimit: 100,
+    },
   },
   auth: true,
   endpoints: [externalUsersLogin],

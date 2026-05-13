@@ -13,12 +13,16 @@ export const Tenants: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'name',
+    pagination: {
+      defaultLimit: 100,
+    },
   },
   fields: [
     {
       name: 'name',
       type: 'text',
       required: true,
+      unique: true,
     },
     {
       name: 'domain',
@@ -35,6 +39,7 @@ export const Tenants: CollectionConfig = {
       },
       index: true,
       required: true,
+      unique: true,
     },
     {
       name: 'allowPublicRead',

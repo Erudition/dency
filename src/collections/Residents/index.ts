@@ -14,6 +14,9 @@ export const Residents: CollectionConfig = {
     useAsTitle: 'displayName',
     defaultColumns: ['displayName', 'startYear', 'leaveDate', 'leaveReason'],
     group: 'People',
+    pagination: {
+      defaultLimit: 100,
+    },
   },
   fields: [
     {
@@ -104,6 +107,18 @@ export const Residents: CollectionConfig = {
         description: 'Reason for departure',
         condition: (data) => Boolean(data?.leaveDate),
       },
+    },
+    {
+      name: 'avoidanceRules',
+      type: 'join',
+      collection: 'avoidance-rules',
+      on: 'resident',
+    },
+    {
+      name: 'transferCredits',
+      type: 'join',
+      collection: 'transfer-credits',
+      on: 'resident',
     },
   ],
 }

@@ -16,13 +16,20 @@ export const AnnualRequirements: CollectionConfig = {
     read: () => true,
     update: superAdminOrTenantAdminAccess,
   },
+  indexes: [
+    { fields: ['academicYear', 'tag', 'tenant'], unique: true },
+  ],
   admin: {
     useAsTitle: 'id',
     defaultColumns: ['academicYear', 'tag', 'source', 'minimum', 'maximum', 'ideal'],
     group: 'Requirements & Staffing',
     description:
-      'Operational requirements for a specific academic year + tag. One entry per tag × year. ' +
-      'Min/max apply uniformly across all PGY levels. PGY-specific ideals are soft goals for scoring.',
+      'Annual operational requirements effective-dated to an academic year. ' +
+      'Resolved against the schedule year (latest rule where effectiveYear \u2264 scheduleYear).',
+    hidden: true,
+    pagination: {
+      defaultLimit: 100,
+    },
   },
   fields: [
     {
@@ -59,6 +66,15 @@ export const AnnualRequirements: CollectionConfig = {
             description: 'Hard floor (weeks). Violation if not met.',
             width: '33%',
           },
+          validate: (val: number | null | undefined, { siblingData }: { siblingData: any }) => {
+            if (val != null && siblingData.maximum != null && val > siblingData.maximum) {
+              return 'Minimum cannot be greater than maximum'
+            }
+            if (val != null && siblingData.ideal != null && val > siblingData.ideal) {
+              return 'Minimum cannot be greater than ideal'
+            }
+            return true
+          },
         },
         {
           name: 'maximum',
@@ -68,6 +84,15 @@ export const AnnualRequirements: CollectionConfig = {
             description: 'Hard ceiling (weeks). Violation if exceeded.',
             width: '33%',
           },
+          validate: (val: number | null | undefined, { siblingData }: { siblingData: any }) => {
+            if (val != null && siblingData.minimum != null && val < siblingData.minimum) {
+              return 'Maximum cannot be less than minimum'
+            }
+            if (val != null && siblingData.ideal != null && val < siblingData.ideal) {
+              return 'Maximum cannot be less than ideal'
+            }
+            return true
+          },
         },
         {
           name: 'ideal',
@@ -76,6 +101,15 @@ export const AnnualRequirements: CollectionConfig = {
           admin: {
             description: 'Soft goal (weeks). Closer is better, not a violation.',
             width: '33%',
+          },
+          validate: (val: number | null | undefined, { siblingData }: { siblingData: any }) => {
+            if (val != null && siblingData.minimum != null && val < siblingData.minimum) {
+              return 'Ideal cannot be less than minimum'
+            }
+            if (val != null && siblingData.maximum != null && val > siblingData.maximum) {
+              return 'Ideal cannot be greater than maximum'
+            }
+            return true
           },
         },
       ],

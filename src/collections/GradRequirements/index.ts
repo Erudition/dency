@@ -16,22 +16,30 @@ export const GradRequirements: CollectionConfig = {
     read: () => true,
     update: superAdminOrTenantAdminAccess,
   },
+  indexes: [
+    { fields: ['academicYear', 'tag', 'tenant'], unique: true },
+  ],
   admin: {
     useAsTitle: 'id',
-    defaultColumns: ['startYear', 'tag', 'source', 'minimum', 'maximum', 'ideal'],
+    defaultColumns: ['academicYear', 'tag', 'source', 'minimum', 'maximum', 'ideal'],
     group: 'Requirements & Staffing',
     description:
-      'Cumulative graduation requirements tied to a class entry year. ' +
-      'Tracks total weeks across the full residency for a given tag.',
+      'Cumulative graduation requirements effective-dated to an academic year. ' +
+      'Resolved against the resident\u2019s matriculation year (latest rule where effectiveYear \u2264 startYear).',
+    hidden: true,
+    pagination: {
+      defaultLimit: 100,
+    },
   },
   fields: [
     {
-      name: 'startYear',
-      type: 'number',
+      name: 'academicYear',
+      type: 'relationship',
+      relationTo: 'academic-years',
       required: true,
       index: true,
       admin: {
-        description: 'The class entry year (e.g. 2026 for the class starting July 2026)',
+        description: 'Effective year: this rule applies to residents whose matriculation year is at or after this academic year, until a newer rule supersedes it.',
       },
     },
     {
@@ -61,6 +69,15 @@ export const GradRequirements: CollectionConfig = {
             description: 'Hard floor (total weeks across residency)',
             width: '33%',
           },
+          validate: (val: number | null | undefined, { siblingData }: { siblingData: any }) => {
+            if (val != null && siblingData.maximum != null && val > siblingData.maximum) {
+              return 'Minimum cannot be greater than maximum'
+            }
+            if (val != null && siblingData.ideal != null && val > siblingData.ideal) {
+              return 'Minimum cannot be greater than ideal'
+            }
+            return true
+          },
         },
         {
           name: 'maximum',
@@ -70,6 +87,15 @@ export const GradRequirements: CollectionConfig = {
             description: 'Hard ceiling (total weeks across residency)',
             width: '33%',
           },
+          validate: (val: number | null | undefined, { siblingData }: { siblingData: any }) => {
+            if (val != null && siblingData.minimum != null && val < siblingData.minimum) {
+              return 'Maximum cannot be less than minimum'
+            }
+            if (val != null && siblingData.ideal != null && val < siblingData.ideal) {
+              return 'Maximum cannot be less than ideal'
+            }
+            return true
+          },
         },
         {
           name: 'ideal',
@@ -78,6 +104,15 @@ export const GradRequirements: CollectionConfig = {
           admin: {
             description: 'Soft goal (total weeks across residency)',
             width: '33%',
+          },
+          validate: (val: number | null | undefined, { siblingData }: { siblingData: any }) => {
+            if (val != null && siblingData.minimum != null && val < siblingData.minimum) {
+              return 'Ideal cannot be less than minimum'
+            }
+            if (val != null && siblingData.maximum != null && val > siblingData.maximum) {
+              return 'Ideal cannot be greater than maximum'
+            }
+            return true
           },
         },
       ],
