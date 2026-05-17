@@ -65,10 +65,11 @@ export const Residents: CollectionConfig = {
     },
     {
       name: 'user',
-      type: 'relationship',
-      relationTo: 'users',
+      type: 'join',
+      collection: 'users',
+      on: 'resident',
       admin: {
-        description: 'Link to login account',
+        description: 'Login account associated with this resident',
         position: 'sidebar',
       },
     },
