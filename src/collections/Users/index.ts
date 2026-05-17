@@ -58,6 +58,7 @@ const Users: CollectionConfig = {
     pagination: {
       defaultLimit: 100,
     },
+    hidden: ({ user }) => !isSuperAdmin(user as any),
   },
   auth: true,
   endpoints: [externalUsersLogin],

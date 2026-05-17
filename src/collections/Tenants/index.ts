@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { isSuperAdminAccess } from '@/access/isSuperAdmin'
+import { isSuperAdmin, isSuperAdminAccess } from '@/access/isSuperAdmin'
 import { updateAndDeleteAccess } from './access/updateAndDelete'
 
 export const Tenants: CollectionConfig = {
@@ -16,6 +16,7 @@ export const Tenants: CollectionConfig = {
     pagination: {
       defaultLimit: 100,
     },
+    hidden: ({ user }) => !isSuperAdmin(user as any),
   },
   fields: [
     {
