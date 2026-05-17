@@ -32,11 +32,7 @@ services:
       PAYLOAD_PUBLIC_SERVER_URL: ${SERVICE_URL_PAYLOAD:-http://localhost:3000}
       SEED_DB: ${SEED_DB:-true}
       NODE_OPTIONS: --no-deprecation
-    volumes:
-      # Mount source for hot-reload in dev mode
-      - .:/app
-      - /app/node_modules
-      - /app/.next
+
 
 volumes:
   pgdata:
