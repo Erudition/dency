@@ -99,6 +99,15 @@ export const Rotations: CollectionConfig = {
       },
     },
     {
+      name: 'isPlaceholder',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Placeholder rotation (e.g. unspecified Elective or Clinic). The engine may schedule this, but the admin or resident must resolve it to a specific rotation.',
+        position: 'sidebar',
+      },
+    },
+    {
       name: 'availableSince',
       type: 'relationship',
       relationTo: 'academic-years',
