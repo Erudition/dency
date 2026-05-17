@@ -72,7 +72,6 @@ export interface Config {
     'academic-years': AcademicYear;
     tags: Tag;
     rotations: Rotation;
-    'staffing-preferences': StaffingPreference;
     'annual-requirements': AnnualRequirement;
     'grad-requirements': GradRequirement;
     residents: Resident;
@@ -93,9 +92,6 @@ export interface Config {
       gradRequirements: 'grad-requirements';
       annualRequirements: 'annual-requirements';
     };
-    rotations: {
-      staffingPreferences: 'staffing-preferences';
-    };
     residents: {
       user: 'users';
       avoidanceRules: 'avoidance-rules';
@@ -111,7 +107,6 @@ export interface Config {
     'academic-years': AcademicYearsSelect<false> | AcademicYearsSelect<true>;
     tags: TagsSelect<false> | TagsSelect<true>;
     rotations: RotationsSelect<false> | RotationsSelect<true>;
-    'staffing-preferences': StaffingPreferencesSelect<false> | StaffingPreferencesSelect<true>;
     'annual-requirements': AnnualRequirementsSelect<false> | AnnualRequirementsSelect<true>;
     'grad-requirements': GradRequirementsSelect<false> | GradRequirementsSelect<true>;
     residents: ResidentsSelect<false> | ResidentsSelect<true>;
@@ -494,36 +489,25 @@ export interface Rotation {
    * Educational/audit buckets this rotation counts toward
    */
   tags?: (number | Tag)[] | null;
-  staffingPreferences?: {
-    docs?: (number | StaffingPreference)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "staffing-preferences".
- */
-export interface StaffingPreference {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  title?: string | null;
-  academicYear: number | AcademicYear;
-  rotation: number | Rotation;
   /**
-   * Number of interns (PGY-1) in this staffing configuration
+   * Staffing rules apply indefinitely until superseded by a newer block.
    */
-  internCount: number;
-  /**
-   * Number of seniors (PGY-2/3) in this staffing configuration
-   */
-  seniorCount: number;
-  /**
-   * Lower = more preferred. Rank 1 is the most desirable staffing combo.
-   */
-  preferenceRank: number;
+  staffingConfigurations?:
+    | {
+        since: number | AcademicYear;
+        /**
+         * Drag rows to rank (top = most preferred).
+         */
+        preferences?:
+          | {
+              internCount: number;
+              seniorCount: number;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -611,10 +595,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'rotations';
         value: number | Rotation;
-      } | null)
-    | ({
-        relationTo: 'staffing-preferences';
-        value: number | StaffingPreference;
       } | null)
     | ({
         relationTo: 'annual-requirements';
@@ -772,22 +752,19 @@ export interface RotationsSelect<T extends boolean = true> {
   availableSince?: T;
   availableUntil?: T;
   tags?: T;
-  staffingPreferences?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "staffing-preferences_select".
- */
-export interface StaffingPreferencesSelect<T extends boolean = true> {
-  tenant?: T;
-  title?: T;
-  academicYear?: T;
-  rotation?: T;
-  internCount?: T;
-  seniorCount?: T;
-  preferenceRank?: T;
+  staffingConfigurations?:
+    | T
+    | {
+        since?: T;
+        preferences?:
+          | T
+          | {
+              internCount?: T;
+              seniorCount?: T;
+              id?: T;
+            };
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

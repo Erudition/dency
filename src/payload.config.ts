@@ -9,7 +9,6 @@ import Users from './collections/Users'
 import { AcademicYears } from './collections/AcademicYears'
 import { Tags } from './collections/Tags'
 import { Rotations } from './collections/Rotations'
-import { StaffingPreferences } from './collections/StaffingPreferences'
 import { AnnualRequirements } from './collections/AnnualRequirements'
 import { GradRequirements } from './collections/GradRequirements'
 import { Residents } from './collections/Residents'
@@ -44,7 +43,6 @@ export default buildConfig({
     Tags,
     Rotations,
     // Requirements & Staffing
-    StaffingPreferences,
     AnnualRequirements,
     GradRequirements,
     // People
@@ -78,7 +76,6 @@ export default buildConfig({
       collections: {
         'tags': {},
         'rotations': {},
-        'staffing-preferences': {},
         'annual-requirements': {},
         'grad-requirements': {},
         'residents': {},

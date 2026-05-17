@@ -127,10 +127,48 @@ export const Rotations: CollectionConfig = {
       },
     },
     {
-      name: 'staffingPreferences',
-      type: 'join',
-      collection: 'staffing-preferences',
-      on: 'rotation',
+      name: 'staffingConfigurations',
+      type: 'array',
+      admin: {
+        description: 'Staffing rules apply indefinitely until superseded by a newer block.',
+        initCollapsed: true,
+      },
+      fields: [
+        {
+          name: 'since',
+          type: 'relationship',
+          relationTo: 'academic-years',
+          required: true,
+        },
+        {
+          name: 'preferences',
+          type: 'array',
+          admin: {
+            description: 'Drag rows to rank (top = most preferred).',
+          },
+          fields: [
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'internCount',
+                  type: 'number',
+                  required: true,
+                  min: 0,
+                  admin: { width: '50%' },
+                },
+                {
+                  name: 'seniorCount',
+                  type: 'number',
+                  required: true,
+                  min: 0,
+                  admin: { width: '50%' },
+                },
+              ],
+            },
+          ],
+        },
+      ],
     },
   ],
 }

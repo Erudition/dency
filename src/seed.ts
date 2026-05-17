@@ -173,36 +173,20 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
         availableSince: ayMap[2023],
         tags: tagIds,
         tenant: tenantId,
+        staffingConfigurations: [
+          {
+            since: ayMap[2023],
+            preferences: [
+              { internCount: r.minInterns, seniorCount: r.minSeniors },
+              ...(r.maxInterns !== r.minInterns || r.maxSeniors !== r.minSeniors 
+                ? [{ internCount: r.maxInterns, seniorCount: r.maxSeniors }] 
+                : [])
+            ]
+          }
+        ],
       },
     })
     rotationMap[r.codename] = rotation.id
-  }
-
-  // ─── Staffing Preferences (for AY 2026) ───
-  for (const r of ROTATION_DATA) {
-    const rotId = rotationMap[r.codename]
-    if (!rotId) continue
-
-    const combos: Array<{ interns: number; seniors: number; rank: number }> = []
-    combos.push({ interns: r.minInterns, seniors: r.minSeniors, rank: 1 })
-
-    if (r.maxInterns !== r.minInterns || r.maxSeniors !== r.minSeniors) {
-      combos.push({ interns: r.maxInterns, seniors: r.maxSeniors, rank: 2 })
-    }
-
-    for (const combo of combos) {
-      await payload.create({
-        collection: 'staffing-preferences',
-        data: {
-          academicYear: ayMap[2026],
-          rotation: rotId,
-          internCount: combo.interns,
-          seniorCount: combo.seniors,
-          preferenceRank: combo.rank,
-          tenant: tenantId,
-        },
-      })
-    }
   }
 
   // ─── Graduation Requirements (Curriculum Rules) ───
