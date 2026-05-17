@@ -75,10 +75,14 @@ export default buildConfig({
     multiTenantPlugin<Config>({
       collections: {
         'tags': {},
-        'rotations': {},
+        'rotations': {
+          useBaseFilter: false,
+        },
         'annual-requirements': {},
         'grad-requirements': {},
-        'residents': {},
+        'residents': {
+          useBaseFilter: false,
+        },
         'transfer-credits': {},
         'avoidance-rules': {},
         'schedules': {},

@@ -53,19 +53,30 @@ export default function WorkingYearSelector() {
         // Read cookie or default to current academic year
         const cookieVal = getCookie('payload-working-year')
         const match = opts.find((o) => o.value === cookieVal)
+        const currentAY = getCurrentAcademicStartYear()
+
         if (match) {
           setSelected(match.value)
-        } else {
-          const currentAY = getCurrentAcademicStartYear()
+        } else if (opts.length > 0) {
           const fallback =
             opts.find((o) => o.value === String(currentAY)) || opts[opts.length - 1]
           if (fallback) {
             setSelected(fallback.value)
             setCookie('payload-working-year', String(fallback.value))
           }
+        } else {
+          // If no options were returned (e.g., fetch failed or restricted),
+          // guarantee the cookie is still set so the backend doesn't fail filters.
+          if (!cookieVal) {
+            setCookie('payload-working-year', String(currentAY))
+          }
         }
       } catch (e) {
         console.error('Failed to fetch academic years:', e)
+        // Fallback cookie on error
+        if (!getCookie('payload-working-year')) {
+          setCookie('payload-working-year', String(getCurrentAcademicStartYear()))
+        }
       } finally {
         setLoading(false)
       }
