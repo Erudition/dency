@@ -29,7 +29,7 @@ services:
     environment:
       POSTGRES_URL: postgres://payload:payload@postgres:5432/residency
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-6c63db79af25713a563191e8}
-      PAYLOAD_PUBLIC_SERVER_URL: http://localhost:3000
+      PAYLOAD_PUBLIC_SERVER_URL: ${PAYLOAD_PUBLIC_SERVER_URL:-http://localhost:3000}
       SEED_DB: ${SEED_DB:-true}
       NODE_OPTIONS: --no-deprecation
     volumes:
