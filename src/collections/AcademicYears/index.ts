@@ -60,6 +60,24 @@ export const AcademicYears: CollectionConfig = {
       },
     },
     {
+      name: 'clinicWeeksPerCycle',
+      type: 'number',
+      required: true,
+      defaultValue: 1,
+      min: 1,
+      admin: {
+        description:
+          'Y in X+Y: how many consecutive weeks each cohort spends in clinic per cycle. ' +
+          'Most programs use 1 (4+1). Some use 2 (4+2 or 6+2).',
+      },
+    },
+    {
+      name: 'clinicCycles',
+      type: 'join',
+      collection: 'clinic-cycles',
+      on: 'academicYear',
+    },
+    {
       name: 'annualRequirements',
       type: 'join',
       collection: 'annual-requirements',

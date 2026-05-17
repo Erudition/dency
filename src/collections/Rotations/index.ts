@@ -86,7 +86,7 @@ export const Rotations: CollectionConfig = {
       name: 'color',
       type: 'text',
       admin: {
-        description: 'Hex color or hue value for UI display',
+        description: 'Hue value (0–360). The frontend computes OKLCH colors from hue + intensity.',
       },
     },
     {

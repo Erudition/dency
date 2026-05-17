@@ -121,6 +121,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
       collection: 'academic-years',
       data: {
         startingYear: year,
+        clinicWeeksPerCycle: 1,
       },
     })
     ayMap[year] = ay.id
@@ -316,6 +317,27 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
       })
       residentMap[fullName] = resident.id
     }
+  }
+
+  // ─── Clinic Cycles (4+1 model for AY 2026) ───
+  // Set clinicWeeksPerCycle = 1 (Y) on AY 2026
+  await payload.update({
+    collection: 'academic-years',
+    id: ayMap[2026],
+    data: { clinicWeeksPerCycle: 1 },
+  })
+
+  // Create 5 clinic cycle cohorts for AY 2026
+  for (let cycleNum = 1; cycleNum <= 5; cycleNum++) {
+    await payload.create({
+      collection: 'clinic-cycles',
+      data: {
+        number: cycleNum,
+        label: `Clinic Cycle ${cycleNum}`,
+        academicYear: ayMap[2026],
+        tenant: tenantId,
+      },
+    })
   }
   
   // ─── Historical Schedules & Assignments ───

@@ -79,6 +79,7 @@ export interface Config {
     'avoidance-rules': AvoidanceRule;
     schedules: Schedule;
     'schedule-assignments': ScheduleAssignment;
+    'clinic-cycles': ClinicCycle;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -86,6 +87,7 @@ export interface Config {
   };
   collectionsJoins: {
     'academic-years': {
+      clinicCycles: 'clinic-cycles';
       annualRequirements: 'annual-requirements';
     };
     tags: {
@@ -114,6 +116,7 @@ export interface Config {
     'avoidance-rules': AvoidanceRulesSelect<false> | AvoidanceRulesSelect<true>;
     schedules: SchedulesSelect<false> | SchedulesSelect<true>;
     'schedule-assignments': ScheduleAssignmentsSelect<false> | ScheduleAssignmentsSelect<true>;
+    'clinic-cycles': ClinicCyclesSelect<false> | ClinicCyclesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -272,11 +275,48 @@ export interface AcademicYear {
   id: number;
   startingYear: number;
   title?: string | null;
+  /**
+   * Y in X+Y: how many consecutive weeks each cohort spends in clinic per cycle. Most programs use 1 (4+1). Some use 2 (4+2 or 6+2).
+   */
+  clinicWeeksPerCycle: number;
+  clinicCycles?: {
+    docs?: (number | ClinicCycle)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   annualRequirements?: {
     docs?: (number | AnnualRequirement)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Each document is a clinic cycle cohort in the X+Y model. The number of cohorts × Y (clinic weeks per cycle) = Z (total cycle length). Add or remove cohorts to experiment with different X+Y configurations.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clinic-cycles".
+ */
+export interface ClinicCycle {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  /**
+   * Cohort number (1-based). "Clinic Cycle 1" = clinic on the first week of the year.
+   */
+  number: number;
+  /**
+   * Auto-generated from cohort number
+   */
+  label?: string | null;
+  /**
+   * The academic year this cycle configuration applies to
+   */
+  academicYear: number | AcademicYear;
+  /**
+   * Residents assigned to this clinic cycle for this academic year
+   */
+  residents?: (number | Resident)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -470,13 +510,17 @@ export interface Rotation {
    */
   outpatientPercentage: number;
   /**
-   * Hex color or hue value for UI display
+   * Hue value (0–360). The frontend computes OKLCH colors from hue + intensity.
    */
   color?: string | null;
   /**
    * Eligible for Jeopardy/Backup coverage
    */
   isFlexible?: boolean | null;
+  /**
+   * Placeholder rotation (e.g. unspecified Elective or Clinic). The engine may schedule this, but the admin or resident must resolve it to a specific rotation.
+   */
+  isPlaceholder?: boolean | null;
   /**
    * First academic year this rotation is active
    */
@@ -623,6 +667,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'schedule-assignments';
         value: number | ScheduleAssignment;
+      } | null)
+    | ({
+        relationTo: 'clinic-cycles';
+        value: number | ClinicCycle;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -718,6 +766,8 @@ export interface TenantsSelect<T extends boolean = true> {
 export interface AcademicYearsSelect<T extends boolean = true> {
   startingYear?: T;
   title?: T;
+  clinicWeeksPerCycle?: T;
+  clinicCycles?: T;
   annualRequirements?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -749,6 +799,7 @@ export interface RotationsSelect<T extends boolean = true> {
   outpatientPercentage?: T;
   color?: T;
   isFlexible?: T;
+  isPlaceholder?: T;
   availableSince?: T;
   availableUntil?: T;
   tags?: T;
@@ -873,6 +924,19 @@ export interface ScheduleAssignmentsSelect<T extends boolean = true> {
   week?: T;
   rotation?: T;
   locked?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clinic-cycles_select".
+ */
+export interface ClinicCyclesSelect<T extends boolean = true> {
+  tenant?: T;
+  number?: T;
+  label?: T;
+  academicYear?: T;
+  residents?: T;
   updatedAt?: T;
   createdAt?: T;
 }

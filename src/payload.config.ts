@@ -16,6 +16,7 @@ import { TransferCredits } from './collections/TransferCredits'
 import { AvoidanceRules } from './collections/AvoidanceRules'
 import { Schedules } from './collections/Schedules'
 import { ScheduleAssignments } from './collections/ScheduleAssignments'
+import { ClinicCycles } from './collections/ClinicCycles'
 
 import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
 import { isSuperAdmin } from './access/isSuperAdmin'
@@ -28,6 +29,10 @@ const dirname = path.dirname(filename)
 
 // eslint-disable-next-line no-restricted-exports
 export default buildConfig({
+  cors: [
+    'https://erudition.github.io',
+    ...(process.env.NODE_ENV === 'development' ? ['http://localhost:5173'] : []),
+  ],
   admin: {
     user: 'users',
     components: {
@@ -52,6 +57,7 @@ export default buildConfig({
     // Scheduling
     Schedules,
     ScheduleAssignments,
+    ClinicCycles,
   ],
   db: postgresAdapter({
     pool: {
@@ -87,6 +93,7 @@ export default buildConfig({
         'avoidance-rules': {},
         'schedules': {},
         'schedule-assignments': {},
+        'clinic-cycles': {},
       },
       tenantField: {
         access: {
