@@ -32,6 +32,11 @@ services:
       PAYLOAD_PUBLIC_SERVER_URL: ${SERVICE_URL_PAYLOAD:-http://localhost:3000}
       SEED_DB: ${SEED_DB:-true}
       NODE_OPTIONS: --no-deprecation
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 
 volumes:
