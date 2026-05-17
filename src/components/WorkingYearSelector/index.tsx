@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation.js'
-import { ReactSelect } from '@payloadcms/ui'
-import type { ReactSelectOption } from '@payloadcms/ui'
+import { SelectInput } from '@payloadcms/ui'
+import type { OptionObject } from 'payload'
 
 type AcademicYear = {
   id: number
@@ -33,8 +33,8 @@ function setCookie(name: string, value: string): void {
 
 export default function WorkingYearSelector() {
   const router = useRouter()
-  const [options, setOptions] = useState<ReactSelectOption[]>([])
-  const [selected, setSelected] = useState<ReactSelectOption | undefined>(undefined)
+  const [options, setOptions] = useState<OptionObject[]>([])
+  const [selected, setSelected] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export default function WorkingYearSelector() {
         const data = await res.json()
         const docs: AcademicYear[] = data.docs || []
 
-        const opts: ReactSelectOption[] = docs.map((y) => ({
+        const opts: OptionObject[] = docs.map((y) => ({
           label: y.title,
           value: String(y.startingYear),
         }))
@@ -54,13 +54,15 @@ export default function WorkingYearSelector() {
         const cookieVal = getCookie('payload-working-year')
         const match = opts.find((o) => o.value === cookieVal)
         if (match) {
-          setSelected(match)
+          setSelected(match.value)
         } else {
           const currentAY = getCurrentAcademicStartYear()
           const fallback =
             opts.find((o) => o.value === String(currentAY)) || opts[opts.length - 1]
-          setSelected(fallback)
-          if (fallback) setCookie('payload-working-year', String(fallback.value))
+          if (fallback) {
+            setSelected(fallback.value)
+            setCookie('payload-working-year', String(fallback.value))
+          }
         }
       } catch (e) {
         console.error('Failed to fetch academic years:', e)
@@ -71,10 +73,10 @@ export default function WorkingYearSelector() {
     fetchYears()
   }, [])
 
-  function handleChange(option: ReactSelectOption | ReactSelectOption[]) {
+  function handleChange(option: any) {
     const val = Array.isArray(option) ? option[0] : option
-    if (!val) return
-    setSelected(val)
+    if (!val || !val.value) return
+    setSelected(val.value)
     setCookie('payload-working-year', String(val.value))
     router.refresh()
   }
@@ -82,31 +84,15 @@ export default function WorkingYearSelector() {
   if (loading || options.length === 0) return null
 
   return (
-    <div
-      style={{
-        padding: '12px 20px',
-        borderBottom: '1px solid var(--theme-elevation-150)',
-      }}
-    >
-      <label
-        style={{
-          display: 'block',
-          fontSize: '11px',
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-          color: 'var(--theme-elevation-500)',
-          marginBottom: '6px',
-        }}
-      >
-        Working Year
-      </label>
-      <ReactSelect
+    <div className="tenant-selector" style={{ width: '100%', marginBottom: '2rem' }}>
+      <SelectInput
+        label="Working Year"
+        name="workingYear"
+        path="workingYear"
         options={options}
         value={selected}
         onChange={handleChange}
         isClearable={false}
-        isSearchable={false}
       />
     </div>
   )
