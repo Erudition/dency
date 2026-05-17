@@ -21,7 +21,11 @@ const defaultTenantArrayField = tenantsArrayField({
       type: 'select',
       defaultValue: ['tenant-viewer'],
       hasMany: true,
-      options: ['tenant-admin', 'tenant-viewer'],
+      options: [
+        { label: 'Admin', value: 'tenant-admin' },
+        { label: 'Schedule Manager', value: 'schedule-manager' },
+        { label: 'Viewer', value: 'tenant-viewer' },
+      ],
       required: true,
       access: {
         update: ({ req }) => {
@@ -87,7 +91,10 @@ const Users: CollectionConfig = {
       type: 'select',
       defaultValue: ['user'],
       hasMany: true,
-      options: ['super-admin', 'user'],
+      options: [
+        { label: 'Super Admin', value: 'super-admin' },
+        { label: 'User', value: 'user' },
+      ],
       access: {
         update: ({ req }) => {
           return isSuperAdmin(req.user)

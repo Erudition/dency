@@ -1,14 +1,14 @@
 import type { CollectionConfig } from 'payload'
 
-import { superAdminOrTenantAdminAccess } from '@/access/superAdminOrTenantAdmin'
+import { manageSchedulesAccess } from '@/access/manageSchedules'
 
 export const Schedules: CollectionConfig = {
   slug: 'schedules',
   access: {
-    create: superAdminOrTenantAdminAccess,
-    delete: superAdminOrTenantAdminAccess,
+    create: manageSchedulesAccess,
+    delete: manageSchedulesAccess,
     read: () => true,
-    update: superAdminOrTenantAdminAccess,
+    update: manageSchedulesAccess,
   },
   admin: {
     useAsTitle: 'title',
