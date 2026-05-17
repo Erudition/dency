@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation.js'
+import { ReactSelect } from '@payloadcms/ui'
+import type { ReactSelectOption } from '@payloadcms/ui'
 
 type AcademicYear = {
   id: number
@@ -17,7 +19,6 @@ function getCurrentAcademicStartYear(): number {
   const now = new Date()
   const month = now.getMonth() // 0-indexed
   const year = now.getFullYear()
-  // Academic year starts July 1 (month index 6)
   return month >= 6 ? year : year - 1
 }
 
@@ -32,8 +33,8 @@ function setCookie(name: string, value: string): void {
 
 export default function WorkingYearSelector() {
   const router = useRouter()
-  const [years, setYears] = useState<AcademicYear[]>([])
-  const [selected, setSelected] = useState<string>('')
+  const [options, setOptions] = useState<ReactSelectOption[]>([])
+  const [selected, setSelected] = useState<ReactSelectOption | undefined>(undefined)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -42,19 +43,24 @@ export default function WorkingYearSelector() {
         const res = await fetch('/api/academic-years?limit=100&sort=startingYear')
         const data = await res.json()
         const docs: AcademicYear[] = data.docs || []
-        setYears(docs)
+
+        const opts: ReactSelectOption[] = docs.map((y) => ({
+          label: y.title,
+          value: String(y.startingYear),
+        }))
+        setOptions(opts)
 
         // Read cookie or default to current academic year
         const cookieVal = getCookie('payload-working-year')
-        if (cookieVal && docs.some((y) => String(y.startingYear) === cookieVal)) {
-          setSelected(cookieVal)
+        const match = opts.find((o) => o.value === cookieVal)
+        if (match) {
+          setSelected(match)
         } else {
           const currentAY = getCurrentAcademicStartYear()
-          // Find the closest year in available options
-          const match = docs.find((y) => y.startingYear === currentAY)
-          const fallback = match ? String(match.startingYear) : docs.length > 0 ? String(docs[docs.length - 1].startingYear) : ''
+          const fallback =
+            opts.find((o) => o.value === String(currentAY)) || opts[opts.length - 1]
           setSelected(fallback)
-          if (fallback) setCookie('payload-working-year', fallback)
+          if (fallback) setCookie('payload-working-year', String(fallback.value))
         }
       } catch (e) {
         console.error('Failed to fetch academic years:', e)
@@ -65,14 +71,15 @@ export default function WorkingYearSelector() {
     fetchYears()
   }, [])
 
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const val = e.target.value
+  function handleChange(option: ReactSelectOption | ReactSelectOption[]) {
+    const val = Array.isArray(option) ? option[0] : option
+    if (!val) return
     setSelected(val)
-    setCookie('payload-working-year', val)
+    setCookie('payload-working-year', String(val.value))
     router.refresh()
   }
 
-  if (loading || years.length === 0) return null
+  if (loading || options.length === 0) return null
 
   return (
     <div
@@ -82,7 +89,6 @@ export default function WorkingYearSelector() {
       }}
     >
       <label
-        htmlFor="working-year-selector"
         style={{
           display: 'block',
           fontSize: '11px',
@@ -95,27 +101,13 @@ export default function WorkingYearSelector() {
       >
         Working Year
       </label>
-      <select
-        id="working-year-selector"
+      <ReactSelect
+        options={options}
         value={selected}
         onChange={handleChange}
-        style={{
-          width: '100%',
-          padding: '6px 8px',
-          borderRadius: '4px',
-          border: '1px solid var(--theme-elevation-250)',
-          backgroundColor: 'var(--theme-elevation-50)',
-          color: 'var(--theme-text)',
-          fontSize: '14px',
-          cursor: 'pointer',
-        }}
-      >
-        {years.map((y) => (
-          <option key={y.id} value={String(y.startingYear)}>
-            {y.title}
-          </option>
-        ))}
-      </select>
+        isClearable={false}
+        isSearchable={false}
+      />
     </div>
   )
 }
