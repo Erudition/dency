@@ -14,6 +14,7 @@ export const AcademicYears: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'startingYear'],
     group: 'Program Structure',
+    hidden: true,
     pagination: {
       defaultLimit: 100,
     },
