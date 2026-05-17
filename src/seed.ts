@@ -336,7 +336,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
   
   // ─── Historical Schedules & Assignments ───
   try {
-    const schedulesPath = path.resolve(__dirname, '../../residency-optimizer/specification/historical_schedules_grid_v2.json')
+    const schedulesPath = path.resolve(__dirname, 'seed-data/historical_schedules_grid_v2.json')
     const schedulesRaw = fs.readFileSync(schedulesPath, 'utf-8')
     const historicalSchedules = JSON.parse(schedulesRaw)
     
@@ -388,7 +388,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
   
   // ─── Transfer Credits ───
   try {
-    const creditsPath = path.resolve(__dirname, '../../residency-optimizer/specification/resident_subspecialty_data_v2.json')
+    const creditsPath = path.resolve(__dirname, 'seed-data/resident_subspecialty_data_v2.json')
     const creditsRaw = fs.readFileSync(creditsPath, 'utf-8')
     const subspecialtyData = JSON.parse(creditsRaw)
     
