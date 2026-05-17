@@ -1,6 +1,7 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Where } from 'payload'
 
 import { superAdminOrTenantAdminAccess } from '@/access/superAdminOrTenantAdmin'
+import { setDefaultAvailableSince } from '@/hooks/setDefaultAvailableSince'
 
 export const Tags: CollectionConfig = {
   slug: 'tags',
@@ -12,11 +13,33 @@ export const Tags: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'description', 'retired'],
+    defaultColumns: ['title', 'description', 'availableSince', 'availableUntil'],
     group: 'Program Structure',
     pagination: {
       defaultLimit: 100,
     },
+    baseListFilter: ({ req }) => {
+      const cookieHeader = req.headers.get('cookie') || ''
+      const match = cookieHeader.match(/payload-working-year=(\d+)/)
+      if (!match) return null
+
+      const workingYear = Number(match[1])
+      const filter: Where = {
+        and: [
+          { 'availableSince.startingYear': { less_than_equal: workingYear } },
+          {
+            or: [
+              { availableUntil: { exists: false } },
+              { 'availableUntil.startingYear': { greater_than_equal: workingYear } },
+            ],
+          },
+        ],
+      }
+      return filter
+    },
+  },
+  hooks: {
+    beforeValidate: [setDefaultAvailableSince],
   },
   fields: [
     {
@@ -35,11 +58,21 @@ export const Tags: CollectionConfig = {
       },
     },
     {
-      name: 'retired',
-      type: 'checkbox',
-      defaultValue: false,
+      name: 'availableSince',
+      type: 'relationship',
+      relationTo: 'academic-years',
+      required: true,
       admin: {
-        description: 'Soft-delete flag. Retired tags are hidden from new requirement creation.',
+        description: 'First academic year this tag is active',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'availableUntil',
+      type: 'relationship',
+      relationTo: 'academic-years',
+      admin: {
+        description: 'Last academic year this tag is active (blank = indefinite)',
         position: 'sidebar',
       },
     },

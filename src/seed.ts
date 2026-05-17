@@ -139,7 +139,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
   for (const catName of uniqueCategories) {
     const tag = await payload.create({
       collection: 'tags',
-      data: { title: catName, retired: false, tenant: tenantId },
+      data: { title: catName, availableSince: ayMap[2023], tenant: tenantId },
     })
     tagMap[catName] = tag.id
   }
@@ -170,7 +170,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
         outpatientPercentage: ('outpatientPercentage' in r ? r.outpatientPercentage : settingToOutpatient[r.setting]) ?? 0,
         color: r.color,
         isFlexible: false,
-        retired: false,
+        availableSince: ayMap[2023],
         tags: tagIds,
         tenant: tenantId,
       },

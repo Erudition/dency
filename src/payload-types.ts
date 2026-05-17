@@ -343,9 +343,13 @@ export interface Tag {
    */
   description?: string | null;
   /**
-   * Soft-delete flag. Retired tags are hidden from new requirement creation.
+   * First academic year this tag is active
    */
-  retired?: boolean | null;
+  availableSince: number | AcademicYear;
+  /**
+   * Last academic year this tag is active (blank = indefinite)
+   */
+  availableUntil?: (number | null) | AcademicYear;
   gradRequirements?: {
     docs?: (number | GradRequirement)[];
     hasNextPage?: boolean;
@@ -479,9 +483,13 @@ export interface Rotation {
    */
   isFlexible?: boolean | null;
   /**
-   * Soft-delete flag
+   * First academic year this rotation is active
    */
-  retired?: boolean | null;
+  availableSince: number | AcademicYear;
+  /**
+   * Last academic year this rotation is active (blank = indefinite)
+   */
+  availableUntil?: (number | null) | AcademicYear;
   /**
    * Educational/audit buckets this rotation counts toward
    */
@@ -742,7 +750,8 @@ export interface TagsSelect<T extends boolean = true> {
   tenant?: T;
   title?: T;
   description?: T;
-  retired?: T;
+  availableSince?: T;
+  availableUntil?: T;
   gradRequirements?: T;
   annualRequirements?: T;
   updatedAt?: T;
@@ -760,7 +769,8 @@ export interface RotationsSelect<T extends boolean = true> {
   outpatientPercentage?: T;
   color?: T;
   isFlexible?: T;
-  retired?: T;
+  availableSince?: T;
+  availableUntil?: T;
   tags?: T;
   staffingPreferences?: T;
   updatedAt?: T;

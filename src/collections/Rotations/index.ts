@@ -1,6 +1,7 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Where } from 'payload'
 
 import { superAdminOrTenantAdminAccess } from '@/access/superAdminOrTenantAdmin'
+import { setDefaultAvailableSince } from '@/hooks/setDefaultAvailableSince'
 
 export const Rotations: CollectionConfig = {
   slug: 'rotations',
@@ -17,6 +18,28 @@ export const Rotations: CollectionConfig = {
     pagination: {
       defaultLimit: 100,
     },
+    baseListFilter: ({ req }) => {
+      const cookieHeader = req.headers.get('cookie') || ''
+      const match = cookieHeader.match(/payload-working-year=(\d+)/)
+      if (!match) return null
+
+      const workingYear = Number(match[1])
+      const filter: Where = {
+        and: [
+          { 'availableSince.startingYear': { less_than_equal: workingYear } },
+          {
+            or: [
+              { availableUntil: { exists: false } },
+              { 'availableUntil.startingYear': { greater_than_equal: workingYear } },
+            ],
+          },
+        ],
+      }
+      return filter
+    },
+  },
+  hooks: {
+    beforeValidate: [setDefaultAvailableSince],
   },
   fields: [
     {
@@ -76,11 +99,21 @@ export const Rotations: CollectionConfig = {
       },
     },
     {
-      name: 'retired',
-      type: 'checkbox',
-      defaultValue: false,
+      name: 'availableSince',
+      type: 'relationship',
+      relationTo: 'academic-years',
+      required: true,
       admin: {
-        description: 'Soft-delete flag',
+        description: 'First academic year this rotation is active',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'availableUntil',
+      type: 'relationship',
+      relationTo: 'academic-years',
+      admin: {
+        description: 'Last academic year this rotation is active (blank = indefinite)',
         position: 'sidebar',
       },
     },
