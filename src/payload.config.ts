@@ -31,6 +31,9 @@ const dirname = path.dirname(filename)
 export default buildConfig({
   admin: {
     user: 'users',
+    components: {
+      beforeNavLinks: ['@/components/WorkingYearSelector#default'],
+    },
   },
   collections: [
     // Infrastructure

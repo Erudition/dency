@@ -43,5 +43,17 @@ export const Tags: CollectionConfig = {
         position: 'sidebar',
       },
     },
+    {
+      name: 'gradRequirements',
+      type: 'join',
+      collection: 'grad-requirements',
+      on: 'tag',
+    },
+    {
+      name: 'annualRequirements',
+      type: 'join',
+      collection: 'annual-requirements',
+      on: 'tag',
+    },
   ],
 }

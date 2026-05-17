@@ -59,21 +59,9 @@ export const AcademicYears: CollectionConfig = {
       },
     },
     {
-      name: 'gradRequirements',
-      type: 'join',
-      collection: 'grad-requirements',
-      on: 'academicYear',
-    },
-    {
       name: 'annualRequirements',
       type: 'join',
       collection: 'annual-requirements',
-      on: 'academicYear',
-    },
-    {
-      name: 'staffingPreferences',
-      type: 'join',
-      collection: 'staffing-preferences',
       on: 'academicYear',
     },
   ],

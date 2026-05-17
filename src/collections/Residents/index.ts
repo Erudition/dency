@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Where } from 'payload'
 
 import { superAdminOrTenantAdminAccess } from '@/access/superAdminOrTenantAdmin'
 
@@ -16,6 +16,20 @@ export const Residents: CollectionConfig = {
     group: 'People',
     pagination: {
       defaultLimit: 100,
+    },
+    baseListFilter: ({ req }) => {
+      const cookieHeader = req.headers.get('cookie') || ''
+      const match = cookieHeader.match(/payload-working-year=(\d+)/)
+      if (!match) return null
+
+      const workingYear = Number(match[1])
+      const filter: Where = {
+        and: [
+          { 'startYear.startingYear': { less_than_equal: workingYear } },
+          { 'pgy3Year.startingYear': { greater_than_equal: workingYear } },
+        ],
+      }
+      return filter
     },
   },
   fields: [

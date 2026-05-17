@@ -93,5 +93,11 @@ export const Rotations: CollectionConfig = {
         description: 'Educational/audit buckets this rotation counts toward',
       },
     },
+    {
+      name: 'staffingPreferences',
+      type: 'join',
+      collection: 'staffing-preferences',
+      on: 'rotation',
+    },
   ],
 }

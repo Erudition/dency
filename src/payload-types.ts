@@ -87,11 +87,17 @@ export interface Config {
   };
   collectionsJoins: {
     'academic-years': {
+      annualRequirements: 'annual-requirements';
+    };
+    tags: {
       gradRequirements: 'grad-requirements';
       annualRequirements: 'annual-requirements';
+    };
+    rotations: {
       staffingPreferences: 'staffing-preferences';
     };
     residents: {
+      user: 'users';
       avoidanceRules: 'avoidance-rules';
       transferCredits: 'transfer-credits';
     };
@@ -164,7 +170,7 @@ export interface User {
   tenants?:
     | {
         tenant: number | Tenant;
-        roles: ('tenant-admin' | 'tenant-viewer')[];
+        roles: ('tenant-admin' | 'schedule-manager' | 'tenant-viewer')[];
         id?: string | null;
       }[]
     | null;
@@ -231,9 +237,13 @@ export interface Resident {
    */
   pgy3Year?: (number | null) | AcademicYear;
   /**
-   * Link to login account
+   * Login account associated with this resident
    */
-  user?: (number | null) | User;
+  user?: {
+    docs?: (number | User)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   /**
    * Date the resident joined the program
    */
@@ -267,6 +277,75 @@ export interface AcademicYear {
   id: number;
   startingYear: number;
   title?: string | null;
+  annualRequirements?: {
+    docs?: (number | AnnualRequirement)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Annual operational requirements effective-dated to an academic year. Resolved against the schedule year (latest rule where effectiveYear ≤ scheduleYear).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "annual-requirements".
+ */
+export interface AnnualRequirement {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  academicYear: number | AcademicYear;
+  tag: number | Tag;
+  /**
+   * Origin of this requirement (ACGME mandate, MHS policy, or program-specific)
+   */
+  source: 'acgme' | 'mhs' | 'program';
+  /**
+   * Hard floor (weeks). Violation if not met.
+   */
+  minimum?: number | null;
+  /**
+   * Hard ceiling (weeks). Violation if exceeded.
+   */
+  maximum?: number | null;
+  /**
+   * Soft goal (weeks). Closer is better, not a violation.
+   */
+  ideal?: number | null;
+  /**
+   * PGY-1 ideal weeks for this tag in this year
+   */
+  pgy1Ideal?: number | null;
+  /**
+   * PGY-2 ideal weeks for this tag in this year
+   */
+  pgy2Ideal?: number | null;
+  /**
+   * PGY-3 ideal weeks for this tag in this year
+   */
+  pgy3Ideal?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  /**
+   * Educational/audit bucket name, e.g. "Wards", "ICU", "Cardiology"
+   */
+  title: string;
+  /**
+   * Hint for what rotations apply to the tag
+   */
+  description?: string | null;
+  /**
+   * Soft-delete flag. Retired tags are hidden from new requirement creation.
+   */
+  retired?: boolean | null;
   gradRequirements?: {
     docs?: (number | GradRequirement)[];
     hasNextPage?: boolean;
@@ -274,11 +353,6 @@ export interface AcademicYear {
   };
   annualRequirements?: {
     docs?: (number | AnnualRequirement)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  staffingPreferences?: {
-    docs?: (number | StaffingPreference)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
@@ -331,91 +405,45 @@ export interface GradRequirement {
   createdAt: string;
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "tags".
- */
-export interface Tag {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  /**
-   * Educational/audit bucket name, e.g. "Wards", "ICU", "Cardiology"
-   */
-  title: string;
-  /**
-   * Hint for what rotations apply to the tag
-   */
-  description?: string | null;
-  /**
-   * Soft-delete flag. Retired tags are hidden from new requirement creation.
-   */
-  retired?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Annual operational requirements effective-dated to an academic year. Resolved against the schedule year (latest rule where effectiveYear ≤ scheduleYear).
+ * Pairs of residents who should not be co-scheduled.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "annual-requirements".
+ * via the `definition` "avoidance-rules".
  */
-export interface AnnualRequirement {
+export interface AvoidanceRule {
   id: number;
   tenant?: (number | null) | Tenant;
-  academicYear: number | AcademicYear;
-  tag: number | Tag;
-  /**
-   * Origin of this requirement (ACGME mandate, MHS policy, or program-specific)
-   */
-  source: 'acgme' | 'mhs' | 'program';
-  /**
-   * Hard floor (weeks). Violation if not met.
-   */
-  minimum?: number | null;
-  /**
-   * Hard ceiling (weeks). Violation if exceeded.
-   */
-  maximum?: number | null;
-  /**
-   * Soft goal (weeks). Closer is better, not a violation.
-   */
-  ideal?: number | null;
-  /**
-   * PGY-1 ideal weeks for this tag in this year
-   */
-  pgy1Ideal?: number | null;
-  /**
-   * PGY-2 ideal weeks for this tag in this year
-   */
-  pgy2Ideal?: number | null;
-  /**
-   * PGY-3 ideal weeks for this tag in this year
-   */
-  pgy3Ideal?: number | null;
+  resident: number | Resident;
+  avoidedResident: number | Resident;
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * Educational credit a transfer-in resident brings from their prior program, per tag.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "staffing-preferences".
+ * via the `definition` "transfer-credits".
  */
-export interface StaffingPreference {
+export interface TransferCredit {
   id: number;
   tenant?: (number | null) | Tenant;
-  title?: string | null;
-  academicYear: number | AcademicYear;
-  rotation: number | Rotation;
+  resident: number | Resident;
   /**
-   * Number of interns (PGY-1) in this staffing configuration
+   * The educational bucket this credit counts toward
    */
-  internCount: number;
+  tag: number | Tag;
   /**
-   * Number of seniors (PGY-2/3) in this staffing configuration
+   * Number of weeks of credit from the prior program
    */
-  seniorCount: number;
+  weeks: number;
   /**
-   * Lower = more preferred. Rank 1 is the most desirable staffing combo.
+   * Name of the prior residency program
    */
-  preferenceRank: number;
+  fromProgram?: string | null;
+  /**
+   * Free text for additional context
+   */
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -458,49 +486,36 @@ export interface Rotation {
    * Educational/audit buckets this rotation counts toward
    */
   tags?: (number | Tag)[] | null;
+  staffingPreferences?: {
+    docs?: (number | StaffingPreference)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
 /**
- * Pairs of residents who should not be co-scheduled.
- *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "avoidance-rules".
+ * via the `definition` "staffing-preferences".
  */
-export interface AvoidanceRule {
+export interface StaffingPreference {
   id: number;
   tenant?: (number | null) | Tenant;
-  resident: number | Resident;
-  avoidedResident: number | Resident;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Educational credit a transfer-in resident brings from their prior program, per tag.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "transfer-credits".
- */
-export interface TransferCredit {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  resident: number | Resident;
+  title?: string | null;
+  academicYear: number | AcademicYear;
+  rotation: number | Rotation;
   /**
-   * The educational bucket this credit counts toward
+   * Number of interns (PGY-1) in this staffing configuration
    */
-  tag: number | Tag;
+  internCount: number;
   /**
-   * Number of weeks of credit from the prior program
+   * Number of seniors (PGY-2/3) in this staffing configuration
    */
-  weeks: number;
+  seniorCount: number;
   /**
-   * Name of the prior residency program
+   * Lower = more preferred. Rank 1 is the most desirable staffing combo.
    */
-  fromProgram?: string | null;
-  /**
-   * Free text for additional context
-   */
-  notes?: string | null;
+  preferenceRank: number;
   updatedAt: string;
   createdAt: string;
 }
@@ -715,9 +730,7 @@ export interface TenantsSelect<T extends boolean = true> {
 export interface AcademicYearsSelect<T extends boolean = true> {
   startingYear?: T;
   title?: T;
-  gradRequirements?: T;
   annualRequirements?: T;
-  staffingPreferences?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -730,6 +743,8 @@ export interface TagsSelect<T extends boolean = true> {
   title?: T;
   description?: T;
   retired?: T;
+  gradRequirements?: T;
+  annualRequirements?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -747,6 +762,7 @@ export interface RotationsSelect<T extends boolean = true> {
   isFlexible?: T;
   retired?: T;
   tags?: T;
+  staffingPreferences?: T;
   updatedAt?: T;
   createdAt?: T;
 }

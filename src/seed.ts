@@ -56,6 +56,7 @@ const ROTATION_DATA = [
 /**
  * Resident class rosters from constants.ts
  */
+const CLASS_2023 = ['Wright, Andrew Hunter', 'Melo, Sebastian']
 const CLASS_2024 = ['Baset, Nawsin', 'Cho, Kevin Wook Jin', 'De La Cruz, Aaron Daniel', 'Deen, Nafis M', 'Liu, Gongkai', 'Masud, Saad', 'Min, Shao-Ting', 'Mysore, Nishad Narain', 'Thanedar, Sarita', 'Yu, Tommy']
 const CLASS_2025 = ['Alvarado, Ramona Davina', 'Dawood, Umar Asif', 'Delano, Victoria Remilekun', 'Echegaray, Sebastian Alexander', 'Hill, Brittany Marie', 'Jentz, Austin Lee', 'Letson, Mia Kang', 'Millan, Cassandra Marie', 'Nazeer, Usman Imran', 'Ndze, Lila Linda', 'Orden, Martin Basobas', 'Rendon, Arthur Isaac', 'Sanderson, Jacob Nakolo', 'Shah, Vidur Hemant']
 const CLASS_2026 = ['Alhaddadein, Yara', 'Chen, Chang-Rong', 'DeVolder, Mitchell', 'Gurram, Neha', 'Hamadneh, Yazan', 'Joseph, Rachel', 'King, Matthew', 'Mukherjee, Lipilekha', 'Omokaro, Precious', 'Paripati, Laxmi Mahita Reddy', 'Quillin, Travis', 'Rakaba, Michelle', 'Suresh, Sneha', 'Thupili, Sasanka', 'Yekini, Stephen']
@@ -115,7 +116,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
 
   // ─── Academic Years ───
   const ayMap: Record<number, number> = {} // startingYear → record ID
-  for (const year of [2023, 2024, 2025, 2026]) { // added 2023 for historical data
+  for (const year of [2023, 2024, 2025, 2026, 2027, 2028]) {
     const ay = await payload.create({
       collection: 'academic-years',
       data: {
@@ -297,13 +298,14 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
 
   // ─── Residents ───
   const residentMap: Record<string, number> = {} // full name → resident ID
-  const classData: Array<{ names: string[]; startYear: number }> = [
+  const classConfigs = [
+    { names: CLASS_2023, startYear: 2023 },
     { names: CLASS_2024, startYear: 2024 },
     { names: CLASS_2025, startYear: 2025 },
     { names: CLASS_2026, startYear: 2026 },
   ]
 
-  for (const cls of classData) {
+  for (const cls of classConfigs) {
     const ayId = ayMap[cls.startYear]
     if (!ayId) continue
 
@@ -311,12 +313,15 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
       const { firstName, lastName } = parseName(fullName)
       const transfer = TRANSFERS_OUT[fullName]
 
+      const pgy3YearId = ayMap[cls.startYear + 2]
+
       const resident = await payload.create({
         collection: 'residents',
         data: {
           firstName,
           lastName,
           startYear: ayId,
+          ...(pgy3YearId && { pgy3Year: pgy3YearId }),
           joinDate: `${cls.startYear}-07-01`,
           ...(transfer && {
             leaveDate: transfer.leaveDate,
