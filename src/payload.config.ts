@@ -26,6 +26,7 @@ import { getUserTenantIDs } from './utilities/getUserTenantIDs'
 import { seed } from './seed'
 import { scheduleSSEEndpoint } from './endpoints/scheduleSSE'
 import { bulkAssignmentsEndpoint } from './endpoints/bulkAssignments'
+import { launchSchedulerEndpoint } from './endpoints/launchScheduler'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -36,11 +37,12 @@ export default buildConfig({
     'https://erudition.github.io',
     ...(process.env.NODE_ENV === 'development' ? ['http://localhost:5173'] : []),
   ],
-  endpoints: [scheduleSSEEndpoint, bulkAssignmentsEndpoint],
+  endpoints: [scheduleSSEEndpoint, bulkAssignmentsEndpoint, launchSchedulerEndpoint],
   admin: {
     user: 'users',
     components: {
       beforeNavLinks: ['@/components/WorkingYearSelector#default'],
+      afterNavLinks: ['@/components/LaunchSchedulerLink#default'],
     },
   },
   collections: [

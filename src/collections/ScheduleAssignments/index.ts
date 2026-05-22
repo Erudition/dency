@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { manageSchedulesAccess } from '@/access/manageSchedules'
 import { broadcast } from '@/endpoints/sseConnectionManager'
+import { autoFillTenant } from '@/hooks/autoFillTenant'
 
 export const ScheduleAssignments: CollectionConfig = {
   slug: 'schedule-assignments',
@@ -22,6 +23,7 @@ export const ScheduleAssignments: CollectionConfig = {
     },
   },
   hooks: {
+    beforeChange: [autoFillTenant],
     afterChange: [
       async ({ doc, context, req }) => {
         // Skip SSE broadcast when called from the bulk endpoint

@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { manageSchedulesAccess } from '@/access/manageSchedules'
+import { autoFillTenant } from '@/hooks/autoFillTenant'
 
 export const Candidates: CollectionConfig = {
   slug: 'candidates',
@@ -18,6 +19,9 @@ export const Candidates: CollectionConfig = {
     pagination: {
       defaultLimit: 100,
     },
+  },
+  hooks: {
+    beforeChange: [autoFillTenant],
   },
   fields: [
     {

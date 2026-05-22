@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { manageSchedulesAccess } from '@/access/manageSchedules'
 import { broadcast } from '@/endpoints/sseConnectionManager'
+import { autoFillTenant } from '@/hooks/autoFillTenant'
 
 export const Schedules: CollectionConfig = {
   slug: 'schedules',
@@ -24,6 +25,7 @@ export const Schedules: CollectionConfig = {
   },
   hooks: {
     beforeChange: [
+      autoFillTenant,
       async ({ data, req, operation }) => {
         // Validate year contiguity when attaching to a candidate
         if (!data?.candidate) return data
