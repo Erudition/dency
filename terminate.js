@@ -1,5 +1,23 @@
 import 'dotenv/config'
 import pg from 'pg'
+import { execSync } from 'child_process'
+
+function checkDevServers() {
+  try {
+    const processes = execSync('pgrep -fl "next dev|vite"', { encoding: 'utf-8' })
+    if (processes.trim()) {
+      console.error('\x1b[31m[ERROR] Cannot run database reset/seed: active dev servers detected!\x1b[0m')
+      console.error('\x1b[31mPlease terminate all dev servers (Next.js, Vite) before running this script.\x1b[0m')
+      console.error('\x1b[33mActive processes:\x1b[0m')
+      console.error(processes)
+      process.exit(1)
+    }
+  } catch (e) {
+    // pgrep exits with 1 if no process matches, which is the expected/success case
+  }
+}
+
+checkDevServers()
 
 async function terminateOtherSessions() {
   if (!process.env.POSTGRES_URL) {

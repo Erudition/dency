@@ -25,7 +25,7 @@ const ROTATION_DATA = [
   { codename: 'NF', title: 'Night Float', abbr: 'NF', category: 'Night Float', intensity: 4, setting: 'Inpatient', color: '282', minInterns: 1, maxInterns: 2, minSeniors: 1, maxSeniors: 2, pgy1: 4, pgy2: 4, pgy3: 4 },
   { codename: 'EM', title: 'Emergency Medicine', abbr: 'EM', category: 'Emergency', intensity: 3, setting: 'Inpatient', color: '45', minInterns: 0, maxInterns: 0, minSeniors: 1, maxSeniors: 2, pgy2: 2, pgy3: 2 },
   { codename: 'CCIM', title: 'Clinic (CCIM)', abbr: 'CCIM', category: 'Clinic', intensity: 2, setting: 'Outpatient', color: '65', minInterns: 0, maxInterns: 10, minSeniors: 0, maxSeniors: 10 },
-  { codename: 'MET', title: 'Metro Wards', abbr: 'MET', category: 'Wards', intensity: 3, setting: 'Inpatient', color: '155', minInterns: 1, maxInterns: 3, minSeniors: 1, maxSeniors: 2 },
+  { codename: 'W-MET', title: 'Metro Wards', abbr: 'W-MET', category: 'Wards', intensity: 3, setting: 'Inpatient', color: '155', minInterns: 1, maxInterns: 3, minSeniors: 1, maxSeniors: 2 },
   { codename: 'CARDS', title: 'Cardiology', abbr: 'CARDS', category: 'Cardiology', intensity: 3, setting: 'Inpatient', color: '355', minInterns: 0, maxInterns: 1, minSeniors: 0, maxSeniors: 1, pgy1: 2, pgy3: 2 },
   { codename: 'ID', title: 'Infectious Disease', abbr: 'ID', category: 'Infectious Disease', intensity: 2, setting: 'Inpatient', color: '140', minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 1, pgy1: 2 },
   { codename: 'NEPH', title: 'Nephrology', abbr: 'NEPH', category: 'Nephrology', intensity: 1, setting: 'Inpatient', color: '50', outpatientPercentage: 25, minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 1, pgy1: 2 },
@@ -38,7 +38,7 @@ const ROTATION_DATA = [
   { codename: 'ENDO', title: 'Endocrinology', abbr: 'ENDO', category: 'Endocrinology', intensity: 1, setting: 'Outpatient', color: '45', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy2: 2 },
   { codename: 'GERI', title: 'Geriatrics', abbr: 'GERI', category: 'Geriatrics', intensity: 1, setting: 'Outpatient', color: '135', outpatientPercentage: 60, minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 2 },
   { codename: 'HPC', title: 'Hospice & Palliative Care', abbr: 'HPC', category: 'Palliative Care', intensity: 1, setting: 'Inpatient', color: '215', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 2 },
-  { codename: 'METRO', title: 'Metro ICU', abbr: 'METRO', category: 'ICU', intensity: 5, setting: 'Critical Care', color: '335', minInterns: 0, maxInterns: 3, minSeniors: 0, maxSeniors: 3 },
+  { codename: 'MET-ICU', title: 'Metro ICU', abbr: 'MET-ICU', category: 'ICU', intensity: 5, setting: 'Critical Care', color: '335', minInterns: 0, maxInterns: 3, minSeniors: 0, maxSeniors: 3 },
   { codename: 'NIMA', title: 'Primary Care (NIMA Block)', abbr: 'NIMA', category: 'Senior Track', intensity: 2, setting: 'Outpatient', color: '95', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 4 },
   { codename: 'AMCS', title: 'AMCS Consults', abbr: 'AMCS', category: 'AMCS', intensity: 3, setting: 'Inpatient', color: '345', minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 2 },
   { codename: 'CCMA', title: 'Critical Care Medical Assessment', abbr: 'CCMA', category: 'CCMA', intensity: 3, setting: 'Inpatient', color: '280', minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 2 },
@@ -429,8 +429,10 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
         let idx = 1
         
         for (let w = 0; w < weeks.length; w++) {
-          const codename = weeks[w]
+          let codename = weeks[w]
           if (!codename) continue
+          if (codename === 'METRO') codename = 'W-MET'
+          if (codename === 'METRO_ICU') codename = 'MET-ICU'
           const rotId = rotationMap[codename]
           if (!rotId) continue
           
