@@ -47,10 +47,11 @@ const ROTATION_DATA = [
   { codename: 'PMNR', title: 'Physical Medicine & Rehab', abbr: 'PMNR', category: 'PMNR', intensity: 2, setting: 'Inpatient', color: '205', minInterns: 0, maxInterns: 1, minSeniors: 0, maxSeniors: 1 },
   { codename: 'ANES', title: 'Anaesthesia', abbr: 'ANES', category: 'Anaesthesia', intensity: 1, setting: 'Inpatient', color: '190', minInterns: 0, maxInterns: 1, minSeniors: 0, maxSeniors: 1 },
   { codename: 'RSCH', title: 'Research', abbr: 'RSCH', category: 'Research', intensity: 1, setting: 'Non-Clinical', color: '100', minInterns: 0, maxInterns: 10, minSeniors: 0, maxSeniors: 10 },
-  { codename: 'ELEC', title: 'Elective', abbr: 'ELEC', category: 'Elective', intensity: 1, setting: 'Inpatient', color: '150', minInterns: 0, maxInterns: 20, minSeniors: 0, maxSeniors: 20, isPlaceholder: true },
+  { codename: 'ELEC', title: 'Unspecified Elective', abbr: 'ELEC', category: 'Elective', intensity: 1, setting: 'Inpatient', color: '150', minInterns: 0, maxInterns: 20, minSeniors: 0, maxSeniors: 20, isPlaceholder: 'Elective' },
   { codename: 'VAC', title: 'Vacation', abbr: 'VAC', category: 'Vacation', intensity: 0, setting: 'Non-Clinical', color: '80', minInterns: 0, maxInterns: 20, minSeniors: 0, maxSeniors: 20 },
   { codename: 'JH', title: 'Junior Hospitalist', abbr: 'JH', category: 'Senior Track', intensity: 3, setting: 'Inpatient', color: '225', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 4 },
   { codename: 'NIMA_CLINIC', title: 'NIMA Clinic', abbr: 'NIMA', category: 'Clinic', intensity: 2, setting: 'Outpatient', color: '75', minInterns: 0, maxInterns: 10, minSeniors: 0, maxSeniors: 10 },
+  { codename: 'CLINIC', title: 'Unspecified Clinic', abbr: 'CLINIC', category: 'Clinic', intensity: 2, setting: 'Outpatient', color: '65', minInterns: 0, maxInterns: 10, minSeniors: 0, maxSeniors: 10, isPlaceholder: 'Clinic' },
 ] as const
 
 /**
@@ -171,7 +172,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
         outpatientPercentage: ('outpatientPercentage' in r ? r.outpatientPercentage : settingToOutpatient[r.setting]) ?? 0,
         color: r.color,
         isFlexible: false,
-        isPlaceholder: 'isPlaceholder' in r && !!r.isPlaceholder,
+        isPlaceholder: ('isPlaceholder' in r && typeof r.isPlaceholder === 'string') ? tagMap[r.isPlaceholder] : undefined,
         availableSince: ayMap[2023],
         tags: tagIds,
         tenant: tenantId,

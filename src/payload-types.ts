@@ -518,9 +518,9 @@ export interface Rotation {
    */
   isFlexible?: boolean | null;
   /**
-   * Placeholder rotation (e.g. unspecified Elective or Clinic). The engine may schedule this, but the admin or resident must resolve it to a specific rotation.
+   * If set, this rotation is a placeholder for the given tag category (e.g. "Elective", "Clinic"). The admin or resident must resolve it to a specific rotation.
    */
-  isPlaceholder?: boolean | null;
+  isPlaceholder?: (number | null) | Tag;
   /**
    * First academic year this rotation is active
    */

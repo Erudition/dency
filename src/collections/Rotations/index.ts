@@ -100,10 +100,10 @@ export const Rotations: CollectionConfig = {
     },
     {
       name: 'isPlaceholder',
-      type: 'checkbox',
-      defaultValue: false,
+      type: 'relationship',
+      relationTo: 'tags',
       admin: {
-        description: 'Placeholder rotation (e.g. unspecified Elective or Clinic). The engine may schedule this, but the admin or resident must resolve it to a specific rotation.',
+        description: 'If set, this rotation is a placeholder for the given tag category (e.g. "Elective", "Clinic"). The admin or resident must resolve it to a specific rotation.',
         position: 'sidebar',
       },
     },
