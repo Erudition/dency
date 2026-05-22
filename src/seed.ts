@@ -183,12 +183,15 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
         staffingConfigurations: [
           {
             since: ayMap[2023],
-            preferences: [
-              { internCount: r.minInterns, seniorCount: r.minSeniors },
-              ...(r.maxInterns !== r.minInterns || r.maxSeniors !== r.minSeniors 
-                ? [{ internCount: r.maxInterns, seniorCount: r.maxSeniors }] 
-                : [])
-            ]
+            preferences: (() => {
+              const prefs: Array<{ internCount: number; seniorCount: number }> = []
+              for (let ic = r.minInterns; ic <= r.maxInterns; ic++) {
+                for (let sc = r.minSeniors; sc <= r.maxSeniors; sc++) {
+                  prefs.push({ internCount: ic, seniorCount: sc })
+                }
+              }
+              return prefs
+            })()
           }
         ],
       },

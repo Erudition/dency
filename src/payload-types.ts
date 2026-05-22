@@ -428,6 +428,10 @@ export interface Rotation {
   staffingConfigurations?:
     | {
         since: number | AcademicYear;
+        minInterns?: number | null;
+        maxInterns?: number | null;
+        minSeniors?: number | null;
+        maxSeniors?: number | null;
         /**
          * Drag rows to rank (top = most preferred).
          */
@@ -854,6 +858,10 @@ export interface RotationsSelect<T extends boolean = true> {
     | T
     | {
         since?: T;
+        minInterns?: T;
+        maxInterns?: T;
+        minSeniors?: T;
+        maxSeniors?: T;
         preferences?:
           | T
           | {

@@ -2,6 +2,7 @@ import type { CollectionConfig, Where } from 'payload'
 
 import { superAdminOrTenantAdminAccess } from '@/access/superAdminOrTenantAdmin'
 import { setDefaultAvailableSince } from '@/hooks/setDefaultAvailableSince'
+import { populateStaffingPreferences } from '@/hooks/populateStaffingPreferences'
 
 export const Rotations: CollectionConfig = {
   slug: 'rotations',
@@ -39,7 +40,7 @@ export const Rotations: CollectionConfig = {
     },
   },
   hooks: {
-    beforeValidate: [setDefaultAvailableSince],
+    beforeValidate: [setDefaultAvailableSince, populateStaffingPreferences],
   },
   fields: [
     {
@@ -155,6 +156,47 @@ export const Rotations: CollectionConfig = {
           type: 'relationship',
           relationTo: 'academic-years',
           required: true,
+        },
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'minInterns',
+              type: 'number',
+              min: 0,
+              admin: {
+                width: '25%',
+                placeholder: 'Min Interns',
+              },
+            },
+            {
+              name: 'maxInterns',
+              type: 'number',
+              min: 0,
+              admin: {
+                width: '25%',
+                placeholder: 'Max Interns',
+              },
+            },
+            {
+              name: 'minSeniors',
+              type: 'number',
+              min: 0,
+              admin: {
+                width: '25%',
+                placeholder: 'Min Seniors',
+              },
+            },
+            {
+              name: 'maxSeniors',
+              type: 'number',
+              min: 0,
+              admin: {
+                width: '25%',
+                placeholder: 'Max Seniors',
+              },
+            },
+          ],
         },
         {
           name: 'preferences',
