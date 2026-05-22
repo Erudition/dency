@@ -175,7 +175,11 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
         intensity: r.intensity,
         outpatientPercentage: ('outpatientPercentage' in r ? r.outpatientPercentage : settingToOutpatient[r.setting]) ?? 0,
         color: r.color,
-        isFlexible: false,
+        isFlexible: [
+          'CARDS', 'ID', 'NEPH', 'PULM', 'ONC', 'NEURO', 'RHEUM', 'GI',
+          'ADDM', 'ENDO', 'GERI', 'HPC', 'AMCS', 'ENT', 'PMNR', 'ANES',
+          'RSCH', 'ELEC'
+        ].includes(r.codename),
         isPlaceholder: ('isPlaceholder' in r && typeof r.isPlaceholder === 'string') ? tagMap[r.isPlaceholder] : undefined,
         availableSince: ayMap[2023],
         tags: tagIds,
