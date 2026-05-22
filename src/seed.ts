@@ -109,7 +109,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
   await payload.create({
     collection: 'users',
     data: {
-      email: 'Andrew.Wright@MHShealth.com', password: 'demo', username: 'mhs-admin',
+      email: 'Andrew.Wright@MHShealth.com', password: 'hunter', username: 'mhs-admin',
       tenants: [{ roles: ['tenant-admin'], tenant: tenantId }],
     },
   })
