@@ -498,7 +498,7 @@ export interface Rotation {
    */
   title: string;
   /**
-   * Machine identifier, e.g. MICU, RED. Used as the key in the scheduling engine.
+   * Short abbreviation (≤8 chars, A-Z and dashes only), e.g. MICU, W-RED. Displayed in the schedule grid.
    */
   codename: string;
   /**

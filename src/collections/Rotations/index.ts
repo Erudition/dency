@@ -56,8 +56,15 @@ export const Rotations: CollectionConfig = {
       required: true,
       unique: true,
       index: true,
+      maxLength: 8,
+      validate: (value: string | null | undefined) => {
+        if (!value) return true // required handles empty
+        if (value.length > 8) return 'Codename must be 8 characters or fewer.'
+        if (!/^[A-Z-]+$/.test(value)) return 'Codename must contain only capital letters and dashes.'
+        return true
+      },
       admin: {
-        description: 'Machine identifier, e.g. MICU, RED. Used as the key in the scheduling engine.',
+        description: 'Short abbreviation (≤8 chars, A-Z and dashes only), e.g. MICU, W-RED. Displayed in the schedule grid.',
       },
     },
 
