@@ -713,6 +713,12 @@
           "notNull": true,
           "default": 1
         },
+        "canonical_schedule_id": {
+          "name": "canonical_schedule_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp(3) with time zone",
@@ -740,6 +746,21 @@
             }
           ],
           "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "academic_years_canonical_schedule_idx": {
+          "name": "academic_years_canonical_schedule_idx",
+          "columns": [
+            {
+              "expression": "canonical_schedule_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -775,7 +796,21 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "academic_years_canonical_schedule_id_schedules_id_fk": {
+          "name": "academic_years_canonical_schedule_id_schedules_id_fk",
+          "tableFrom": "academic_years",
+          "tableTo": "schedules",
+          "columnsFrom": [
+            "canonical_schedule_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1076,6 +1111,30 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "min_interns": {
+          "name": "min_interns",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "max_interns": {
+          "name": "max_interns",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "min_seniors": {
+          "name": "min_seniors",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "max_seniors": {
+          "name": "max_seniors",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
@@ -1213,12 +1272,11 @@
           "notNull": false,
           "default": false
         },
-        "is_placeholder": {
-          "name": "is_placeholder",
-          "type": "boolean",
+        "is_placeholder_id": {
+          "name": "is_placeholder_id",
+          "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "default": false
+          "notNull": false
         },
         "available_since_id": {
           "name": "available_since_id",
@@ -1274,6 +1332,21 @@
             }
           ],
           "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "rotations_is_placeholder_idx": {
+          "name": "rotations_is_placeholder_idx",
+          "columns": [
+            {
+              "expression": "is_placeholder_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -1346,6 +1419,19 @@
           "tableTo": "tenants",
           "columnsFrom": [
             "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "rotations_is_placeholder_id_tags_id_fk": {
+          "name": "rotations_is_placeholder_id_tags_id_fk",
+          "tableFrom": "rotations",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "is_placeholder_id"
           ],
           "columnsTo": [
             "id"
@@ -2547,6 +2633,153 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.candidates": {
+      "name": "candidates",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "tenant_id": {
+          "name": "tenant_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "starting_year_id": {
+          "name": "starting_year_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "enum_candidates_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "candidates_tenant_idx": {
+          "name": "candidates_tenant_idx",
+          "columns": [
+            {
+              "expression": "tenant_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "candidates_starting_year_idx": {
+          "name": "candidates_starting_year_idx",
+          "columns": [
+            {
+              "expression": "starting_year_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "candidates_updated_at_idx": {
+          "name": "candidates_updated_at_idx",
+          "columns": [
+            {
+              "expression": "updated_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "candidates_created_at_idx": {
+          "name": "candidates_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "candidates_tenant_id_tenants_id_fk": {
+          "name": "candidates_tenant_id_tenants_id_fk",
+          "tableFrom": "candidates",
+          "tableTo": "tenants",
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "candidates_starting_year_id_academic_years_id_fk": {
+          "name": "candidates_starting_year_id_academic_years_id_fk",
+          "tableFrom": "candidates",
+          "tableTo": "academic_years",
+          "columnsFrom": [
+            "starting_year_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.schedules": {
       "name": "schedules",
       "schema": "",
@@ -2571,6 +2804,12 @@
         },
         "academic_year_id": {
           "name": "academic_year_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "candidate_id": {
+          "name": "candidate_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false
@@ -2619,6 +2858,21 @@
           "columns": [
             {
               "expression": "academic_year_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "schedules_candidate_idx": {
+          "name": "schedules_candidate_idx",
+          "columns": [
+            {
+              "expression": "candidate_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -2701,6 +2955,19 @@
           ],
           "onDelete": "set null",
           "onUpdate": "no action"
+        },
+        "schedules_candidate_id_candidates_id_fk": {
+          "name": "schedules_candidate_id_candidates_id_fk",
+          "tableFrom": "schedules",
+          "tableTo": "candidates",
+          "columnsFrom": [
+            "candidate_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -2739,6 +3006,12 @@
         },
         "version_academic_year_id": {
           "name": "version_academic_year_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "version_candidate_id": {
+          "name": "version_candidate_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false
@@ -2820,6 +3093,21 @@
           "columns": [
             {
               "expression": "version_academic_year_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "_schedules_v_version_version_candidate_idx": {
+          "name": "_schedules_v_version_version_candidate_idx",
+          "columns": [
+            {
+              "expression": "version_candidate_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -2954,6 +3242,19 @@
           "tableTo": "academic_years",
           "columnsFrom": [
             "version_academic_year_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "_schedules_v_version_candidate_id_candidates_id_fk": {
+          "name": "_schedules_v_version_candidate_id_candidates_id_fk",
+          "tableFrom": "_schedules_v",
+          "tableTo": "candidates",
+          "columnsFrom": [
+            "version_candidate_id"
           ],
           "columnsTo": [
             "id"
@@ -3678,6 +3979,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "candidates_id": {
+          "name": "candidates_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "schedules_id": {
           "name": "schedules_id",
           "type": "integer",
@@ -3893,6 +4200,21 @@
           "method": "btree",
           "with": {}
         },
+        "payload_locked_documents_rels_candidates_id_idx": {
+          "name": "payload_locked_documents_rels_candidates_id_idx",
+          "columns": [
+            {
+              "expression": "candidates_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "payload_locked_documents_rels_schedules_id_idx": {
           "name": "payload_locked_documents_rels_schedules_id_idx",
           "columns": [
@@ -4076,6 +4398,19 @@
           "tableTo": "avoidance_rules",
           "columnsFrom": [
             "avoidance_rules_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "payload_locked_documents_rels_candidates_fk": {
+          "name": "payload_locked_documents_rels_candidates_fk",
+          "tableFrom": "payload_locked_documents_rels",
+          "tableTo": "candidates",
+          "columnsFrom": [
+            "candidates_id"
           ],
           "columnsTo": [
             "id"
@@ -4474,6 +4809,15 @@
         "on_leave"
       ]
     },
+    "public.enum_candidates_status": {
+      "name": "enum_candidates_status",
+      "schema": "public",
+      "values": [
+        "active",
+        "finalized",
+        "archived"
+      ]
+    },
     "public.enum_schedules_status": {
       "name": "enum_schedules_status",
       "schema": "public",
@@ -4501,6 +4845,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "46d639b2-b905-4d12-9f82-974410e9d15c",
+  "id": "35c2ee0f-aed0-4f5b-bb42-450f8cfe1ad5",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }
