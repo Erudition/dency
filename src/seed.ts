@@ -431,10 +431,22 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
         for (let w = 0; w < weeks.length; w++) {
           let codename = weeks[w]
           if (!codename) continue
-          if (codename === 'METRO') codename = 'W-MET'
-          if (codename === 'METRO_ICU') codename = 'MET-ICU'
+          // Remap legacy seed-data codenames to canonical DB codenames
+          const legacyMap: Record<string, string> = {
+            'METRO': 'W-MET',
+            'METRO_ICU': 'MET-ICU',
+            'RED': 'W-RED',
+            'BLUE': 'W-BLUE',
+            'MICU': 'ICU',
+            'ELECTIVE': 'ELEC',
+            'AMCS_CONSULTS': 'AMCS',
+          }
+          if (legacyMap[codename]) codename = legacyMap[codename]
           const rotId = rotationMap[codename]
-          if (!rotId) continue
+          if (!rotId) {
+            payload.logger.warn(`[seed] Unknown codename "${weeks[w]}" (mapped: "${codename}") for ${residentName} week ${w + 1}`)
+            continue
+          }
           
           placeholders.push(`($${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++})`)
           values.push(schedule.id, residentId, w + 1, rotId, tenantId)
