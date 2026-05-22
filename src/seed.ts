@@ -26,31 +26,31 @@ const ROTATION_DATA = [
   { codename: 'EM', title: 'Emergency Medicine', abbr: 'EM', category: 'Emergency', intensity: 3, setting: 'Inpatient', color: '45', minInterns: 0, maxInterns: 0, minSeniors: 1, maxSeniors: 2, pgy2: 2, pgy3: 2 },
   { codename: 'CCIM', title: 'Clinic (CCIM)', abbr: 'CCIM', category: 'Clinic', intensity: 2, setting: 'Outpatient', color: '65', minInterns: 0, maxInterns: 10, minSeniors: 0, maxSeniors: 10 },
   { codename: 'METRO', title: 'Metro Wards', abbr: 'MET', category: 'Wards', intensity: 3, setting: 'Inpatient', color: '155', minInterns: 1, maxInterns: 3, minSeniors: 1, maxSeniors: 2 },
-  { codename: 'Cards', title: 'Cardiology', abbr: 'CARDS', category: 'Cardiology', intensity: 3, setting: 'Inpatient', color: '355', minInterns: 0, maxInterns: 1, minSeniors: 0, maxSeniors: 1, pgy1: 2, pgy3: 2 },
+  { codename: 'CARDS', title: 'Cardiology', abbr: 'CARDS', category: 'Cardiology', intensity: 3, setting: 'Inpatient', color: '355', minInterns: 0, maxInterns: 1, minSeniors: 0, maxSeniors: 1, pgy1: 2, pgy3: 2 },
   { codename: 'ID', title: 'Infectious Disease', abbr: 'ID', category: 'Infectious Disease', intensity: 2, setting: 'Inpatient', color: '140', minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 1, pgy1: 2 },
-  { codename: 'Neph', title: 'Nephrology', abbr: 'NEPH', category: 'Nephrology', intensity: 1, setting: 'Inpatient', color: '50', outpatientPercentage: 25, minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 1, pgy1: 2 },
-  { codename: 'Pulm', title: 'Pulmonology', abbr: 'PULM', category: 'Pulmonology', intensity: 1, setting: 'Inpatient', color: '185', minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 2, pgy1: 2, pgy2: 2 },
-  { codename: 'Onc', title: 'Hematology-Oncology', abbr: 'ONC', category: 'Heme/Onc', intensity: 1, setting: 'Inpatient', color: '355', outpatientPercentage: 70, minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 2 },
-  { codename: 'Neuro', title: 'Neurology', abbr: 'NEURO', category: 'Neurology', intensity: 2, setting: 'Inpatient', color: '270', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 1, pgy2: 2 },
-  { codename: 'Rheum', title: 'Rheumatology', abbr: 'RHEUM', category: 'Rheumatology', intensity: 1, setting: 'Outpatient', color: '125', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 1, pgy2: 2 },
+  { codename: 'NEPH', title: 'Nephrology', abbr: 'NEPH', category: 'Nephrology', intensity: 1, setting: 'Inpatient', color: '50', outpatientPercentage: 25, minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 1, pgy1: 2 },
+  { codename: 'PULM', title: 'Pulmonology', abbr: 'PULM', category: 'Pulmonology', intensity: 1, setting: 'Inpatient', color: '185', minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 2, pgy1: 2, pgy2: 2 },
+  { codename: 'ONC', title: 'Hematology-Oncology', abbr: 'ONC', category: 'Heme/Onc', intensity: 1, setting: 'Inpatient', color: '355', outpatientPercentage: 70, minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 2 },
+  { codename: 'NEURO', title: 'Neurology', abbr: 'NEURO', category: 'Neurology', intensity: 2, setting: 'Inpatient', color: '270', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 1, pgy2: 2 },
+  { codename: 'RHEUM', title: 'Rheumatology', abbr: 'RHEUM', category: 'Rheumatology', intensity: 1, setting: 'Outpatient', color: '125', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 1, pgy2: 2 },
   { codename: 'GI', title: 'Gastroenterology', abbr: 'GI', category: 'Gastroenterology', intensity: 1, setting: 'Outpatient', color: '70', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy2: 2 },
-  { codename: 'Add Med', title: 'Addiction Medicine', abbr: 'ADDM', category: 'Addiction Medicine', intensity: 1, setting: 'Inpatient', color: '110', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 2 },
-  { codename: 'Endo', title: 'Endocrinology', abbr: 'ENDO', category: 'Endocrinology', intensity: 1, setting: 'Outpatient', color: '45', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy2: 2 },
-  { codename: 'Geri', title: 'Geriatrics', abbr: 'GERI', category: 'Geriatrics', intensity: 1, setting: 'Outpatient', color: '135', outpatientPercentage: 60, minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 2 },
+  { codename: 'ADDM', title: 'Addiction Medicine', abbr: 'ADDM', category: 'Addiction Medicine', intensity: 1, setting: 'Inpatient', color: '110', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 2 },
+  { codename: 'ENDO', title: 'Endocrinology', abbr: 'ENDO', category: 'Endocrinology', intensity: 1, setting: 'Outpatient', color: '45', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy2: 2 },
+  { codename: 'GERI', title: 'Geriatrics', abbr: 'GERI', category: 'Geriatrics', intensity: 1, setting: 'Outpatient', color: '135', outpatientPercentage: 60, minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 2 },
   { codename: 'HPC', title: 'Hospice & Palliative Care', abbr: 'HPC', category: 'Palliative Care', intensity: 1, setting: 'Inpatient', color: '215', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 2 },
   { codename: 'METRO_ICU', title: 'Metro ICU', abbr: 'METRO', category: 'ICU', intensity: 5, setting: 'Critical Care', color: '335', minInterns: 0, maxInterns: 3, minSeniors: 0, maxSeniors: 3 },
   { codename: 'NIMA', title: 'Primary Care (NIMA Block)', abbr: 'NIMA', category: 'Senior Track', intensity: 2, setting: 'Outpatient', color: '95', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 4 },
   { codename: 'AMCS_CONSULTS', title: 'AMCS Consults', abbr: 'AMCS', category: 'AMCS', intensity: 3, setting: 'Inpatient', color: '345', minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 2 },
   { codename: 'CCMA', title: 'Critical Care Medical Assessment', abbr: 'CCMA', category: 'CCMA', intensity: 3, setting: 'Inpatient', color: '280', minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 2 },
-  { codename: 'Heart Failure', title: 'Heart Failure', abbr: 'HF', category: 'Heart Failure', intensity: 2, setting: 'Inpatient', color: '15', minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 2 },
+  { codename: 'HF', title: 'Heart Failure', abbr: 'HF', category: 'Heart Failure', intensity: 2, setting: 'Inpatient', color: '15', minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 2 },
   { codename: 'ENT', title: 'Otolaryngology', abbr: 'ENT', category: 'ENT', intensity: 1, setting: 'Outpatient', color: '170', minInterns: 0, maxInterns: 1, minSeniors: 0, maxSeniors: 1 },
   { codename: 'PMNR', title: 'Physical Medicine & Rehab', abbr: 'PMNR', category: 'PMNR', intensity: 2, setting: 'Inpatient', color: '205', minInterns: 0, maxInterns: 1, minSeniors: 0, maxSeniors: 1 },
   { codename: 'ANAESTHESIA', title: 'Anaesthesia', abbr: 'ANES', category: 'Anaesthesia', intensity: 1, setting: 'Inpatient', color: '190', minInterns: 0, maxInterns: 1, minSeniors: 0, maxSeniors: 1 },
   { codename: 'Research', title: 'Research', abbr: 'RSCH', category: 'Research', intensity: 1, setting: 'Non-Clinical', color: '100', minInterns: 0, maxInterns: 10, minSeniors: 0, maxSeniors: 10 },
   { codename: 'ELECTIVE', title: 'Elective', abbr: 'ELEC', category: 'Elective', intensity: 1, setting: 'Inpatient', color: '150', minInterns: 0, maxInterns: 20, minSeniors: 0, maxSeniors: 20 },
   { codename: 'VAC', title: 'Vacation', abbr: 'VAC', category: 'Vacation', intensity: 0, setting: 'Non-Clinical', color: '80', minInterns: 0, maxInterns: 20, minSeniors: 0, maxSeniors: 20 },
-  { codename: 'Jr Hosp', title: 'Junior Hospitalist', abbr: 'JH', category: 'Senior Track', intensity: 3, setting: 'Inpatient', color: '225', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 4 },
-  { codename: 'NIMA (Clinic)', title: 'NIMA Clinic', abbr: 'NIMA', category: 'Clinic', intensity: 2, setting: 'Outpatient', color: '75', minInterns: 0, maxInterns: 10, minSeniors: 0, maxSeniors: 10 },
+  { codename: 'JH', title: 'Junior Hospitalist', abbr: 'JH', category: 'Senior Track', intensity: 3, setting: 'Inpatient', color: '225', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 4 },
+  { codename: 'NIMA_CLINIC', title: 'NIMA Clinic', abbr: 'NIMA', category: 'Clinic', intensity: 2, setting: 'Outpatient', color: '75', minInterns: 0, maxInterns: 10, minSeniors: 0, maxSeniors: 10 },
 ] as const
 
 /**
@@ -319,25 +319,84 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
     }
   }
 
-  // ─── Clinic Cycles (4+1 model for AY 2026) ───
-  // Set clinicWeeksPerCycle = 1 (Y) on AY 2026
-  await payload.update({
-    collection: 'academic-years',
-    id: ayMap[2026],
-    data: { clinicWeeksPerCycle: 1 },
-  })
+  // ─── Clinic Cycles (4+1 model for prior and active years) ───
+  const HISTORICAL_COHORTS: Record<number, Record<string, number>> = {
+    2024: {
+      "Baset, Nawsin": 5,
+      "Cho, Kevin Wook Jin": 5,
+      "De La Cruz, Aaron Daniel": 5,
+      "Deen, Nafis M": 4,
+      "Liu, Gongkai": 4,
+      "Masud, Saad": 4,
+      "Min, Shao-Ting": 3,
+      "Mysore, Nishad Narain": 3,
+      "Thanedar, Sarita": 2,
+      "Yu, Tommy": 2,
+      "Melo, Sebastian": 3,
+      "Wright, Andrew Hunter": 2
+    },
+    2025: {
+      "Alvarado, Ramona Davina": 5,
+      "Dawood, Umar Asif": 5,
+      "Delano, Victoria Remilekun": 5,
+      "Echegaray, Sebastian Alexander": 5,
+      "Hill, Brittany Marie": 4,
+      "Jentz, Austin Lee": 4,
+      "Letson, Mia Kang": 4,
+      "Millan, Cassandra Marie": 4,
+      "Nazeer, Usman Imran": 3,
+      "Ndze, Lila Linda": 3,
+      "Orden, Martin Basobas": 3,
+      "Rendon, Arthur Isaac": 3,
+      "Sanderson, Jacob Nakolo": 2,
+      "Shah, Vidur Hemant": 2,
+      "Baset, Nawsin": 3,
+      "Cho, Kevin Wook Jin": 5,
+      "De La Cruz, Aaron Daniel": 3,
+      "Deen, Nafis M": 4,
+      "Liu, Gongkai": 2,
+      "Masud, Saad": 2,
+      "Melo, Sebastian": 1,
+      "Min, Shao-Ting": 1,
+      "Thanedar, Sarita": 4,
+      "Wright, Andrew Hunter": 1,
+      "Yu, Tommy": 5
+    }
+  }
 
-  // Create 5 clinic cycle cohorts for AY 2026
-  for (let cycleNum = 1; cycleNum <= 5; cycleNum++) {
-    await payload.create({
-      collection: 'clinic-cycles',
-      data: {
-        number: cycleNum,
-        label: `Clinic Cycle ${cycleNum}`,
-        academicYear: ayMap[2026],
-        tenant: tenantId,
-      },
+  for (const year of [2024, 2025, 2026]) {
+    // Set clinicWeeksPerCycle = 1 on the Academic Year
+    await payload.update({
+      collection: 'academic-years',
+      id: ayMap[year],
+      data: { clinicWeeksPerCycle: 1 },
     })
+
+    // Create 5 clinic cycle cohorts for each year
+    for (let cycleNum = 1; cycleNum <= 5; cycleNum++) {
+      const yearCohorts = HISTORICAL_COHORTS[year] || {}
+      const assignedResidentIds: number[] = []
+
+      for (const [fullName, cohortNum] of Object.entries(yearCohorts)) {
+        if (cohortNum === cycleNum) {
+          const resId = residentMap[fullName]
+          if (resId) {
+            assignedResidentIds.push(resId)
+          }
+        }
+      }
+
+      await payload.create({
+        collection: 'clinic-cycles',
+        data: {
+          number: cycleNum,
+          label: `Clinic Cycle ${cycleNum}`,
+          academicYear: ayMap[year],
+          residents: assignedResidentIds,
+          tenant: tenantId,
+        },
+      })
+    }
   }
   
   // ─── Historical Schedules & Assignments ───
