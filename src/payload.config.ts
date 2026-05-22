@@ -24,6 +24,8 @@ import { isSuperAdmin } from './access/isSuperAdmin'
 import type { Config } from './payload-types'
 import { getUserTenantIDs } from './utilities/getUserTenantIDs'
 import { seed } from './seed'
+import { scheduleSSEEndpoint } from './endpoints/scheduleSSE'
+import { bulkAssignmentsEndpoint } from './endpoints/bulkAssignments'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -34,6 +36,7 @@ export default buildConfig({
     'https://erudition.github.io',
     ...(process.env.NODE_ENV === 'development' ? ['http://localhost:5173'] : []),
   ],
+  endpoints: [scheduleSSEEndpoint, bulkAssignmentsEndpoint],
   admin: {
     user: 'users',
     components: {

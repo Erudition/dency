@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { manageSchedulesAccess } from '@/access/manageSchedules'
+import { broadcast } from '@/endpoints/sseConnectionManager'
 
 export const Schedules: CollectionConfig = {
   slug: 'schedules',
@@ -93,6 +94,54 @@ export const Schedules: CollectionConfig = {
         }
 
         return data
+      },
+    ],
+    afterChange: [
+      async ({ doc, operation }) => {
+        if (!doc.candidate) return doc
+
+        const candidateId =
+          typeof doc.candidate === 'object' ? doc.candidate.id : doc.candidate
+        const ayId =
+          typeof doc.academicYear === 'object'
+            ? doc.academicYear.startingYear ?? doc.academicYear.id
+            : doc.academicYear
+
+        if (operation === 'create') {
+          await broadcast(candidateId, {
+            event: 'schedule-created',
+            data: {
+              scheduleId: doc.id,
+              title: doc.title,
+              academicYear: ayId,
+            },
+          })
+        } else {
+          await broadcast(candidateId, {
+            event: 'schedule-updated',
+            data: {
+              scheduleId: doc.id,
+              title: doc.title,
+            },
+          })
+        }
+        return doc
+      },
+    ],
+    afterDelete: [
+      async ({ doc }) => {
+        if (!doc.candidate) return doc
+
+        const candidateId =
+          typeof doc.candidate === 'object' ? doc.candidate.id : doc.candidate
+
+        await broadcast(candidateId, {
+          event: 'schedule-deleted',
+          data: {
+            scheduleId: doc.id,
+          },
+        })
+        return doc
       },
     ],
   },
