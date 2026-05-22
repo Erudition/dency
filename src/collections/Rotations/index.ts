@@ -13,7 +13,7 @@ export const Rotations: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'codename', 'intensity', 'outpatientPercentage'],
+    defaultColumns: ['title', 'codename', 'outpatientPercentage', 'isFlexible', 'tags'],
     group: 'Program Structure',
     pagination: {
       defaultLimit: 100,

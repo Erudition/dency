@@ -77,6 +77,7 @@ export interface Config {
     residents: Resident;
     'transfer-credits': TransferCredit;
     'avoidance-rules': AvoidanceRule;
+    candidates: Candidate;
     schedules: Schedule;
     'schedule-assignments': ScheduleAssignment;
     'clinic-cycles': ClinicCycle;
@@ -99,6 +100,9 @@ export interface Config {
       avoidanceRules: 'avoidance-rules';
       transferCredits: 'transfer-credits';
     };
+    candidates: {
+      schedules: 'schedules';
+    };
     schedules: {
       scheduleAssignments: 'schedule-assignments';
     };
@@ -114,6 +118,7 @@ export interface Config {
     residents: ResidentsSelect<false> | ResidentsSelect<true>;
     'transfer-credits': TransferCreditsSelect<false> | TransferCreditsSelect<true>;
     'avoidance-rules': AvoidanceRulesSelect<false> | AvoidanceRulesSelect<true>;
+    candidates: CandidatesSelect<false> | CandidatesSelect<true>;
     schedules: SchedulesSelect<false> | SchedulesSelect<true>;
     'schedule-assignments': ScheduleAssignmentsSelect<false> | ScheduleAssignmentsSelect<true>;
     'clinic-cycles': ClinicCyclesSelect<false> | ClinicCyclesSelect<true>;
@@ -279,6 +284,10 @@ export interface AcademicYear {
    * Y in X+Y: how many consecutive weeks each cohort spends in clinic per cycle. Most programs use 1 (4+1). Some use 2 (4+2 or 6+2).
    */
   clinicWeeksPerCycle: number;
+  /**
+   * The official historical schedule for this academic year. Set automatically when a schedule is exported with the promotion checkbox.
+   */
+  canonicalSchedule?: (number | null) | Schedule;
   clinicCycles?: {
     docs?: (number | ClinicCycle)[];
     hasNextPage?: boolean;
@@ -293,72 +302,145 @@ export interface AcademicYear {
   createdAt: string;
 }
 /**
- * Each document is a clinic cycle cohort in the X+Y model. The number of cohorts × Y (clinic weeks per cycle) = Z (total cycle length). Add or remove cohorts to experiment with different X+Y configurations.
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "schedules".
+ */
+export interface Schedule {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  title: string;
+  academicYear: number | AcademicYear;
+  /**
+   * The planning session this schedule belongs to. Null for historical/standalone schedules.
+   */
+  candidate?: (number | null) | Candidate;
+  scheduleAssignments?: {
+    docs?: (number | ScheduleAssignment)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Groups of 3-year schedule planning sessions for real-time collaboration.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "clinic-cycles".
+ * via the `definition` "candidates".
  */
-export interface ClinicCycle {
+export interface Candidate {
   id: number;
   tenant?: (number | null) | Tenant;
   /**
-   * Cohort number (1-based). "Clinic Cycle 1" = clinic on the first week of the year.
+   * A descriptive name for this planning session, e.g. "May 2026 Planning Session".
    */
-  number: number;
+  title: string;
   /**
-   * Auto-generated from cohort number
+   * The first academic year of this 3-year planning horizon.
    */
-  label?: string | null;
+  startingYear: number | AcademicYear;
   /**
-   * The academic year this cycle configuration applies to
+   * Active = in progress. Finalized = year 1 was promoted to canonical. Archived = superseded.
    */
-  academicYear: number | AcademicYear;
-  /**
-   * Residents assigned to this clinic cycle for this academic year
-   */
-  residents?: (number | Resident)[] | null;
+  status: 'active' | 'finalized' | 'archived';
+  schedules?: {
+    docs?: (number | Schedule)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
 /**
- * Annual operational requirements effective-dated to an academic year. Resolved against the schedule year (latest rule where effectiveYear ≤ scheduleYear).
+ * Individual assignment cells within a schedule grid.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "annual-requirements".
+ * via the `definition` "schedule-assignments".
  */
-export interface AnnualRequirement {
+export interface ScheduleAssignment {
   id: number;
   tenant?: (number | null) | Tenant;
-  academicYear: number | AcademicYear;
-  tag: number | Tag;
+  schedule: number | Schedule;
+  resident: number | Resident;
   /**
-   * Origin of this requirement (ACGME mandate, MHS policy, or program-specific)
+   * Week index (1–52) within the academic year
    */
-  source: 'acgme' | 'mhs' | 'program';
+  week: number;
+  rotation: number | Rotation;
   /**
-   * Hard floor (weeks). Violation if not met.
+   * If set, the generator will not overwrite this assignment
    */
-  minimum?: number | null;
+  locked?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rotations".
+ */
+export interface Rotation {
+  id: number;
+  tenant?: (number | null) | Tenant;
   /**
-   * Hard ceiling (weeks). Violation if exceeded.
+   * Full clinical name, e.g. "Medical ICU"
    */
-  maximum?: number | null;
+  title: string;
   /**
-   * Soft goal (weeks). Closer is better, not a violation.
+   * Short abbreviation (≤8 chars, A-Z and dashes only), e.g. MICU, W-RED. Displayed in the schedule grid.
    */
-  ideal?: number | null;
+  codename: string;
   /**
-   * PGY-1 ideal weeks for this tag in this year
+   * Workload score (0 = no clinical work, 5 = maximum intensity)
    */
-  pgy1Ideal?: number | null;
+  intensity: number;
   /**
-   * PGY-2 ideal weeks for this tag in this year
+   * 0 = fully inpatient, 100 = fully ambulatory
    */
-  pgy2Ideal?: number | null;
+  outpatientPercentage: number;
   /**
-   * PGY-3 ideal weeks for this tag in this year
+   * Hue value (0–360). The frontend computes OKLCH colors from hue + intensity.
    */
-  pgy3Ideal?: number | null;
+  color?: string | null;
+  /**
+   * Eligible for Jeopardy/Backup coverage
+   */
+  isFlexible?: boolean | null;
+  /**
+   * If set, this rotation is a placeholder for the given tag category (e.g. "Elective", "Clinic"). The admin or resident must resolve it to a specific rotation.
+   */
+  isPlaceholder?: (number | null) | Tag;
+  /**
+   * First academic year this rotation is active
+   */
+  availableSince: number | AcademicYear;
+  /**
+   * Last academic year this rotation is active (blank = indefinite)
+   */
+  availableUntil?: (number | null) | AcademicYear;
+  /**
+   * Educational/audit buckets this rotation counts toward
+   */
+  tags?: (number | Tag)[] | null;
+  /**
+   * Staffing rules apply indefinitely until superseded by a newer block.
+   */
+  staffingConfigurations?:
+    | {
+        since: number | AcademicYear;
+        /**
+         * Drag rows to rank (top = most preferred).
+         */
+        preferences?:
+          | {
+              internCount: number;
+              seniorCount: number;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -444,6 +526,76 @@ export interface GradRequirement {
   createdAt: string;
 }
 /**
+ * Annual operational requirements effective-dated to an academic year. Resolved against the schedule year (latest rule where effectiveYear ≤ scheduleYear).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "annual-requirements".
+ */
+export interface AnnualRequirement {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  academicYear: number | AcademicYear;
+  tag: number | Tag;
+  /**
+   * Origin of this requirement (ACGME mandate, MHS policy, or program-specific)
+   */
+  source: 'acgme' | 'mhs' | 'program';
+  /**
+   * Hard floor (weeks). Violation if not met.
+   */
+  minimum?: number | null;
+  /**
+   * Hard ceiling (weeks). Violation if exceeded.
+   */
+  maximum?: number | null;
+  /**
+   * Soft goal (weeks). Closer is better, not a violation.
+   */
+  ideal?: number | null;
+  /**
+   * PGY-1 ideal weeks for this tag in this year
+   */
+  pgy1Ideal?: number | null;
+  /**
+   * PGY-2 ideal weeks for this tag in this year
+   */
+  pgy2Ideal?: number | null;
+  /**
+   * PGY-3 ideal weeks for this tag in this year
+   */
+  pgy3Ideal?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Each document is a clinic cycle cohort in the X+Y model. The number of cohorts × Y (clinic weeks per cycle) = Z (total cycle length). Add or remove cohorts to experiment with different X+Y configurations.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clinic-cycles".
+ */
+export interface ClinicCycle {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  /**
+   * Cohort number (1-based). "Clinic Cycle 1" = clinic on the first week of the year.
+   */
+  number: number;
+  /**
+   * Auto-generated from cohort number
+   */
+  label?: string | null;
+  /**
+   * The academic year this cycle configuration applies to
+   */
+  academicYear: number | AcademicYear;
+  /**
+   * Residents assigned to this clinic cycle for this academic year
+   */
+  residents?: (number | Resident)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Pairs of residents who should not be co-scheduled.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -483,116 +635,6 @@ export interface TransferCredit {
    * Free text for additional context
    */
   notes?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "rotations".
- */
-export interface Rotation {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  /**
-   * Full clinical name, e.g. "Medical ICU"
-   */
-  title: string;
-  /**
-   * Short abbreviation (≤8 chars, A-Z and dashes only), e.g. MICU, W-RED. Displayed in the schedule grid.
-   */
-  codename: string;
-  /**
-   * Workload score (0 = no clinical work, 5 = maximum intensity)
-   */
-  intensity: number;
-  /**
-   * 0 = fully inpatient, 100 = fully ambulatory
-   */
-  outpatientPercentage: number;
-  /**
-   * Hue value (0–360). The frontend computes OKLCH colors from hue + intensity.
-   */
-  color?: string | null;
-  /**
-   * Eligible for Jeopardy/Backup coverage
-   */
-  isFlexible?: boolean | null;
-  /**
-   * If set, this rotation is a placeholder for the given tag category (e.g. "Elective", "Clinic"). The admin or resident must resolve it to a specific rotation.
-   */
-  isPlaceholder?: (number | null) | Tag;
-  /**
-   * First academic year this rotation is active
-   */
-  availableSince: number | AcademicYear;
-  /**
-   * Last academic year this rotation is active (blank = indefinite)
-   */
-  availableUntil?: (number | null) | AcademicYear;
-  /**
-   * Educational/audit buckets this rotation counts toward
-   */
-  tags?: (number | Tag)[] | null;
-  /**
-   * Staffing rules apply indefinitely until superseded by a newer block.
-   */
-  staffingConfigurations?:
-    | {
-        since: number | AcademicYear;
-        /**
-         * Drag rows to rank (top = most preferred).
-         */
-        preferences?:
-          | {
-              internCount: number;
-              seniorCount: number;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "schedules".
- */
-export interface Schedule {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  title: string;
-  academicYear: number | AcademicYear;
-  scheduleAssignments?: {
-    docs?: (number | ScheduleAssignment)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * Individual assignment cells within a schedule grid.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "schedule-assignments".
- */
-export interface ScheduleAssignment {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  schedule: number | Schedule;
-  resident: number | Resident;
-  /**
-   * Week index (1–52) within the academic year
-   */
-  week: number;
-  rotation: number | Rotation;
-  /**
-   * If set, the generator will not overwrite this assignment
-   */
-  locked?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -659,6 +701,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'avoidance-rules';
         value: number | AvoidanceRule;
+      } | null)
+    | ({
+        relationTo: 'candidates';
+        value: number | Candidate;
       } | null)
     | ({
         relationTo: 'schedules';
@@ -767,6 +813,7 @@ export interface AcademicYearsSelect<T extends boolean = true> {
   startingYear?: T;
   title?: T;
   clinicWeeksPerCycle?: T;
+  canonicalSchedule?: T;
   clinicCycles?: T;
   annualRequirements?: T;
   updatedAt?: T;
@@ -902,12 +949,26 @@ export interface AvoidanceRulesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "candidates_select".
+ */
+export interface CandidatesSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  startingYear?: T;
+  status?: T;
+  schedules?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "schedules_select".
  */
 export interface SchedulesSelect<T extends boolean = true> {
   tenant?: T;
   title?: T;
   academicYear?: T;
+  candidate?: T;
   scheduleAssignments?: T;
   updatedAt?: T;
   createdAt?: T;

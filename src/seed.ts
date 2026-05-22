@@ -39,7 +39,7 @@ const ROTATION_DATA = [
   { codename: 'GERI', title: 'Geriatrics', abbr: 'GERI', category: 'Geriatrics', intensity: 1, setting: 'Outpatient', color: '135', outpatientPercentage: 60, minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 2 },
   { codename: 'HPC', title: 'Hospice & Palliative Care', abbr: 'HPC', category: 'Palliative Care', intensity: 1, setting: 'Inpatient', color: '215', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 2 },
   { codename: 'MET-ICU', title: 'Metro ICU', abbr: 'MET-ICU', category: 'ICU', intensity: 5, setting: 'Critical Care', color: '335', minInterns: 0, maxInterns: 3, minSeniors: 0, maxSeniors: 3 },
-  { codename: 'NIMA', title: 'Primary Care (NIMA Block)', abbr: 'NIMA', category: 'Senior Track', intensity: 2, setting: 'Outpatient', color: '95', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 4 },
+  { codename: 'PC-NIMA', title: 'Primary Care (NIMA Block)', abbr: 'PC-NIMA', category: 'Senior Track', intensity: 2, setting: 'Outpatient', color: '95', minInterns: 0, maxInterns: 0, minSeniors: 0, maxSeniors: 2, pgy3: 4 },
   { codename: 'AMCS', title: 'AMCS Consults', abbr: 'AMCS', category: 'AMCS', intensity: 3, setting: 'Inpatient', color: '345', minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 2 },
   { codename: 'CCMA', title: 'Critical Care Medical Assessment', abbr: 'CCMA', category: 'CCMA', intensity: 3, setting: 'Inpatient', color: '280', minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 2 },
   { codename: 'HF', title: 'Heart Failure', abbr: 'HF', category: 'Heart Failure', intensity: 2, setting: 'Inpatient', color: '15', minInterns: 0, maxInterns: 2, minSeniors: 0, maxSeniors: 2 },
@@ -141,7 +141,11 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
   for (const catName of uniqueCategories) {
     const tag = await payload.create({
       collection: 'tags',
-      data: { title: catName, availableSince: ayMap[2023], tenant: tenantId },
+      data: {
+        title: catName === 'Clinic' ? 'Continuity Clinic' : catName,
+        availableSince: ayMap[2023],
+        tenant: tenantId,
+      },
     })
     tagMap[catName] = tag.id
   }
@@ -419,6 +423,13 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
           _status: 'published',
           tenant: tenantId,
         }
+      })
+
+      // Set this as the canonical (official) schedule for the academic year
+      await payload.update({
+        collection: 'academic-years',
+        id: ayMap[yearNum],
+        data: { canonicalSchedule: schedule.id },
       })
       
       for (const [residentName, weeks] of Object.entries(residentsObj as Record<string, any[]>)) {

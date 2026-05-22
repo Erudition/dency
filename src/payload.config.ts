@@ -17,6 +17,7 @@ import { AvoidanceRules } from './collections/AvoidanceRules'
 import { Schedules } from './collections/Schedules'
 import { ScheduleAssignments } from './collections/ScheduleAssignments'
 import { ClinicCycles } from './collections/ClinicCycles'
+import { Candidates } from './collections/Candidates'
 
 import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
 import { isSuperAdmin } from './access/isSuperAdmin'
@@ -55,6 +56,7 @@ export default buildConfig({
     TransferCredits,
     AvoidanceRules,
     // Scheduling
+    Candidates,
     Schedules,
     ScheduleAssignments,
     ClinicCycles,
@@ -91,6 +93,7 @@ export default buildConfig({
         },
         'transfer-credits': {},
         'avoidance-rules': {},
+        'candidates': {},
         'schedules': {},
         'schedule-assignments': {},
         'clinic-cycles': {},

@@ -12,7 +12,7 @@ export const ClinicCycles: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'label',
-    defaultColumns: ['label', 'number', 'academicYear'],
+    defaultColumns: ['label', 'number', 'academicYear', 'residents'],
     group: 'Scheduling',
     description:
       'Each document is a clinic cycle cohort in the X+Y model. ' +

@@ -72,6 +72,16 @@ export const AcademicYears: CollectionConfig = {
       },
     },
     {
+      name: 'canonicalSchedule',
+      type: 'relationship',
+      relationTo: 'schedules',
+      admin: {
+        description:
+          'The official historical schedule for this academic year. ' +
+          'Set automatically when a schedule is exported with the promotion checkbox.',
+      },
+    },
+    {
       name: 'clinicCycles',
       type: 'join',
       collection: 'clinic-cycles',
