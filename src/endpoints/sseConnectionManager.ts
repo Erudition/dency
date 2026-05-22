@@ -21,7 +21,15 @@ interface SSEConnection {
 }
 
 // candidateId → Set of active connections
-const connections = new Map<number, Set<SSEConnection>>()
+// Use globalThis so the registry survives Next.js HMR re-evaluations in dev mode.
+const GLOBAL_KEY = '__sse_connections__' as const
+
+function getConnections(): Map<number, Set<SSEConnection>> {
+  if (!(globalThis as any)[GLOBAL_KEY]) {
+    ;(globalThis as any)[GLOBAL_KEY] = new Map<number, Set<SSEConnection>>()
+  }
+  return (globalThis as any)[GLOBAL_KEY]
+}
 
 const encoder = new TextEncoder()
 
@@ -34,6 +42,7 @@ export function registerConnection(
   writer: WritableStreamDefaultWriter<Uint8Array>,
 ): SSEConnection {
   const conn: SSEConnection = { clientId, writer, encoder }
+  const connections = getConnections()
   if (!connections.has(candidateId)) {
     connections.set(candidateId, new Set())
   }
@@ -45,6 +54,7 @@ export function registerConnection(
  * Remove a connection from the registry.
  */
 export function unregisterConnection(candidateId: number, conn: SSEConnection): void {
+  const connections = getConnections()
   const set = connections.get(candidateId)
   if (set) {
     set.delete(conn)
@@ -63,6 +73,7 @@ export async function broadcast(
   event: SSEEvent,
   skipClientId?: string,
 ): Promise<void> {
+  const connections = getConnections()
   const set = connections.get(candidateId)
   if (!set || set.size === 0) return
 
@@ -99,7 +110,7 @@ export async function broadcast(
  * Get the count of active connections for a candidate (useful for debugging).
  */
 export function getConnectionCount(candidateId: number): number {
-  return connections.get(candidateId)?.size ?? 0
+  return getConnections().get(candidateId)?.size ?? 0
 }
 
 /**
