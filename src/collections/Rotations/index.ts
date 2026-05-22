@@ -2,6 +2,7 @@ import type { CollectionConfig, Where } from 'payload'
 
 import { superAdminOrTenantAdminAccess } from '@/access/superAdminOrTenantAdmin'
 import { setDefaultAvailableSince } from '@/hooks/setDefaultAvailableSince'
+import { populateStaffingPreferences } from '@/hooks/populateStaffingPreferences'
 
 export const Rotations: CollectionConfig = {
   slug: 'rotations',
@@ -13,7 +14,7 @@ export const Rotations: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'codename', 'intensity', 'outpatientPercentage'],
+    defaultColumns: ['title', 'codename', 'outpatientPercentage', 'isFlexible', 'tags'],
     group: 'Program Structure',
     pagination: {
       defaultLimit: 100,
@@ -39,7 +40,7 @@ export const Rotations: CollectionConfig = {
     },
   },
   hooks: {
-    beforeValidate: [setDefaultAvailableSince],
+    beforeValidate: [setDefaultAvailableSince, populateStaffingPreferences],
   },
   fields: [
     {
@@ -56,8 +57,15 @@ export const Rotations: CollectionConfig = {
       required: true,
       unique: true,
       index: true,
+      maxLength: 8,
+      validate: (value: string | null | undefined) => {
+        if (!value) return true // required handles empty
+        if (value.length > 8) return 'Codename must be 8 characters or fewer.'
+        if (!/^[A-Z-]+$/.test(value)) return 'Codename must contain only capital letters and dashes.'
+        return true
+      },
       admin: {
-        description: 'Machine identifier, e.g. MICU, RED. Used as the key in the scheduling engine.',
+        description: 'Short abbreviation (≤8 chars, A-Z and dashes only), e.g. MICU, W-RED. Displayed in the schedule grid.',
       },
     },
 
@@ -100,10 +108,10 @@ export const Rotations: CollectionConfig = {
     },
     {
       name: 'isPlaceholder',
-      type: 'checkbox',
-      defaultValue: false,
+      type: 'relationship',
+      relationTo: 'tags',
       admin: {
-        description: 'Placeholder rotation (e.g. unspecified Elective or Clinic). The engine may schedule this, but the admin or resident must resolve it to a specific rotation.',
+        description: 'If set, this rotation is a placeholder for the given tag category (e.g. "Elective", "Clinic"). The admin or resident must resolve it to a specific rotation.',
         position: 'sidebar',
       },
     },
@@ -148,6 +156,47 @@ export const Rotations: CollectionConfig = {
           type: 'relationship',
           relationTo: 'academic-years',
           required: true,
+        },
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'minInterns',
+              type: 'number',
+              min: 0,
+              admin: {
+                width: '25%',
+                placeholder: 'Min Interns',
+              },
+            },
+            {
+              name: 'maxInterns',
+              type: 'number',
+              min: 0,
+              admin: {
+                width: '25%',
+                placeholder: 'Max Interns',
+              },
+            },
+            {
+              name: 'minSeniors',
+              type: 'number',
+              min: 0,
+              admin: {
+                width: '25%',
+                placeholder: 'Min Seniors',
+              },
+            },
+            {
+              name: 'maxSeniors',
+              type: 'number',
+              min: 0,
+              admin: {
+                width: '25%',
+                placeholder: 'Max Seniors',
+              },
+            },
+          ],
         },
         {
           name: 'preferences',

@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Where } from 'payload'
 
 import { superAdminOrTenantAdminAccess } from '@/access/superAdminOrTenantAdmin'
 
@@ -12,7 +12,7 @@ export const ClinicCycles: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'label',
-    defaultColumns: ['label', 'number', 'academicYear'],
+    defaultColumns: ['label', 'number', 'academicYear', 'residents'],
     group: 'Scheduling',
     description:
       'Each document is a clinic cycle cohort in the X+Y model. ' +
@@ -20,6 +20,17 @@ export const ClinicCycles: CollectionConfig = {
       'Add or remove cohorts to experiment with different X+Y configurations.',
     pagination: {
       defaultLimit: 100,
+    },
+    baseListFilter: ({ req }) => {
+      const cookieHeader = req.headers.get('cookie') || ''
+      const match = cookieHeader.match(/payload-working-year=(\d+)/)
+      if (!match) return null
+
+      const workingYear = Number(match[1])
+      const filter: Where = {
+        'academicYear.startingYear': { equals: workingYear },
+      }
+      return filter
     },
   },
   hooks: {

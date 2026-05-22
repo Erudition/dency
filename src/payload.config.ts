@@ -17,12 +17,16 @@ import { AvoidanceRules } from './collections/AvoidanceRules'
 import { Schedules } from './collections/Schedules'
 import { ScheduleAssignments } from './collections/ScheduleAssignments'
 import { ClinicCycles } from './collections/ClinicCycles'
+import { Candidates } from './collections/Candidates'
 
 import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
 import { isSuperAdmin } from './access/isSuperAdmin'
 import type { Config } from './payload-types'
 import { getUserTenantIDs } from './utilities/getUserTenantIDs'
 import { seed } from './seed'
+import { scheduleSSEEndpoint } from './endpoints/scheduleSSE'
+import { bulkAssignmentsEndpoint } from './endpoints/bulkAssignments'
+import { launchSchedulerEndpoint } from './endpoints/launchScheduler'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -33,10 +37,12 @@ export default buildConfig({
     'https://erudition.github.io',
     ...(process.env.NODE_ENV === 'development' ? ['http://localhost:5173'] : []),
   ],
+  endpoints: [scheduleSSEEndpoint, bulkAssignmentsEndpoint, launchSchedulerEndpoint],
   admin: {
     user: 'users',
     components: {
       beforeNavLinks: ['@/components/WorkingYearSelector#default'],
+      afterNavLinks: ['@/components/LaunchSchedulerLink#default'],
     },
   },
   collections: [
@@ -55,6 +61,7 @@ export default buildConfig({
     TransferCredits,
     AvoidanceRules,
     // Scheduling
+    Candidates,
     Schedules,
     ScheduleAssignments,
     ClinicCycles,
@@ -91,6 +98,7 @@ export default buildConfig({
         },
         'transfer-credits': {},
         'avoidance-rules': {},
+        'candidates': {},
         'schedules': {},
         'schedule-assignments': {},
         'clinic-cycles': {},
