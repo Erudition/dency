@@ -19,7 +19,7 @@ import { registerConnection, unregisterConnection } from './sseConnectionManager
 const HEARTBEAT_INTERVAL_MS = 30_000
 
 export const scheduleSSEEndpoint: Endpoint = {
-  path: '/schedules/stream/:candidateId',
+  path: '/sync/stream/:candidateId',
   method: 'get',
   handler: async (req) => {
     const candidateIdStr = req.routeParams?.candidateId as string | undefined

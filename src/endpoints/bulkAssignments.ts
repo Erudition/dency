@@ -29,7 +29,7 @@ interface BulkRequestBody {
 }
 
 export const bulkAssignmentsEndpoint: Endpoint = {
-  path: '/schedules/bulk',
+  path: '/sync/bulk',
   method: 'post',
   handler: async (req) => {
     // Auth check: require authenticated user
