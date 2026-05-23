@@ -12,6 +12,7 @@
  */
 
 import type { Endpoint } from 'payload'
+import { getUserTenantIDs } from '@/utilities/getUserTenantIDs'
 import { broadcast } from './sseConnectionManager'
 
 interface BulkAssignmentInput {
@@ -47,6 +48,10 @@ export const bulkAssignmentsEndpoint: Endpoint = {
 
     const { candidateId, title, academicYearId, assignments } = body
 
+    // Determine the tenant from the authenticated user so all created documents
+    // satisfy the multi-tenant plugin's required tenant field.
+    const [tenantId] = getUserTenantIDs(req.user)
+
     try {
       // 1. Create the Schedule document linked to the candidate
       const schedule = await req.payload.create({
@@ -56,9 +61,8 @@ export const bulkAssignmentsEndpoint: Endpoint = {
           academicYear: academicYearId,
           candidate: candidateId,
           _status: 'published',
+          ...(tenantId != null ? { tenant: tenantId } : {}),
         },
-        // Bypass hooks to avoid triggering SSE for the schedule-created event yet.
-        // We'll broadcast everything at the end.
         disableTransaction: false,
       })
 
@@ -79,6 +83,7 @@ export const bulkAssignmentsEndpoint: Endpoint = {
                 week: a.week,
                 rotation: a.rotationId,
                 locked: a.locked,
+                ...(tenantId != null ? { tenant: tenantId } : {}),
               },
               // Skip individual afterChange hooks — we broadcast in bulk below
               context: { skipSSEBroadcast: true },
