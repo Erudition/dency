@@ -23,7 +23,7 @@ export const ScheduleAssignments: CollectionConfig = {
     },
   },
   hooks: {
-    beforeChange: [autoFillTenant],
+    beforeValidate: [autoFillTenant],
     afterChange: [
       async ({ doc, context, req }) => {
         // Skip SSE broadcast when called from the bulk endpoint

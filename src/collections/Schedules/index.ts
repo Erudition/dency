@@ -24,8 +24,8 @@ export const Schedules: CollectionConfig = {
     drafts: true,
   },
   hooks: {
+    beforeValidate: [autoFillTenant],
     beforeChange: [
-      autoFillTenant,
       async ({ data, req, operation }) => {
         // Validate year contiguity when attaching to a candidate
         if (!data?.candidate) return data

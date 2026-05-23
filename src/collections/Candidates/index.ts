@@ -21,7 +21,7 @@ export const Candidates: CollectionConfig = {
     },
   },
   hooks: {
-    beforeChange: [autoFillTenant],
+    beforeValidate: [autoFillTenant],
     afterDelete: [
       async ({ id, req }) => {
         // Cascade: delete all Schedules (and their Assignments) belonging to this Candidate
