@@ -135,5 +135,64 @@ export const Residents: CollectionConfig = {
       collection: 'transfer-credits',
       on: 'resident',
     },
+    {
+      name: 'isSynthetic',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description:
+          'Auto-generated placeholder for future-year scheduling. Cleaned up when real residents are enrolled.',
+        position: 'sidebar',
+      },
+    },
   ],
+  hooks: {
+    beforeChange: [
+      async ({ data, operation, req }) => {
+        // When a real (non-synthetic) resident is created, auto-delete any
+        // synthetic residents that share the same startYear.
+        if (operation !== 'create' || data?.isSynthetic) return data
+
+        const startYearId =
+          typeof data?.startYear === 'object' ? data.startYear.id : data?.startYear
+        if (!startYearId) return data
+
+        try {
+          const synthetics = await req.payload.find({
+            collection: 'residents',
+            where: {
+              and: [
+                { isSynthetic: { equals: true } },
+                { startYear: { equals: startYearId } },
+              ],
+            },
+            limit: 100,
+            depth: 0,
+            overrideAccess: true,
+            req,
+          })
+
+          if (synthetics.docs.length > 0) {
+            req.payload.logger.info(
+              `Cleaning up ${synthetics.docs.length} synthetic resident(s) for startYear ${startYearId}`,
+            )
+            await Promise.all(
+              synthetics.docs.map((doc) =>
+                req.payload.delete({
+                  collection: 'residents',
+                  id: doc.id,
+                  overrideAccess: true,
+                  req,
+                }),
+              ),
+            )
+          }
+        } catch {
+          // Non-critical — don't block real resident creation if cleanup fails
+        }
+
+        return data
+      },
+    ],
+  },
 }

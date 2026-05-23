@@ -269,6 +269,10 @@ export interface Resident {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  /**
+   * Auto-generated placeholder for future-year scheduling. Cleaned up when real residents are enrolled.
+   */
+  isSynthetic?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -515,15 +519,15 @@ export interface GradRequirement {
    */
   ideal?: number | null;
   /**
-   * Cumulative PGY-1 milestone ideal (weeks by end of PGY-1)
+   * Additional weeks targeted during PGY-1
    */
   pgy1Ideal?: number | null;
   /**
-   * Cumulative PGY-2 milestone ideal (weeks by end of PGY-2)
+   * Additional weeks targeted during PGY-2
    */
   pgy2Ideal?: number | null;
   /**
-   * Cumulative PGY-3 milestone ideal (weeks by end of PGY-3)
+   * Additional weeks targeted during PGY-3
    */
   pgy3Ideal?: number | null;
   updatedAt: string;
@@ -927,6 +931,7 @@ export interface ResidentsSelect<T extends boolean = true> {
   leaveReason?: T;
   avoidanceRules?: T;
   transferCredits?: T;
+  isSynthetic?: T;
   updatedAt?: T;
   createdAt?: T;
 }

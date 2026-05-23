@@ -5,10 +5,13 @@
  * in a single request, bypassing individual afterChange hooks to avoid
  * flooding the SSE stream with 1,300+ individual events.
  *
- * Instead, a single `bulk-sync` SSE event is broadcast after all
- * assignments are inserted.
+ * Also handles synthetic (placeholder) resident creation: the frontend sends
+ * an optional `syntheticResidents` array, and this endpoint upserts them
+ * (find-by firstName+lastName+startYear+isSynthetic, create if missing)
+ * before inserting assignments. A `residentIdMap` is returned so the
+ * frontend can remap in-memory grid keys from synthetic IDs to real backend IDs.
  *
- * Route: POST /api/schedules/bulk
+ * Route: POST /api/sync/bulk
  */
 
 import type { Endpoint } from 'payload'
@@ -16,10 +19,17 @@ import { getUserTenantIDs } from '@/utilities/getUserTenantIDs'
 import { broadcast } from './sseConnectionManager'
 
 interface BulkAssignmentInput {
-  residentId: number
+  residentId: number | string // number for real residents, string for synthetic keys
   week: number
   rotationId: number
   locked: boolean
+}
+
+interface SyntheticResidentInput {
+  frontendKey: string // e.g. "c2027-1"
+  firstName: string
+  lastName: string
+  startYearId: number // backend AY ID
 }
 
 interface BulkRequestBody {
@@ -27,6 +37,7 @@ interface BulkRequestBody {
   title: string
   academicYearId: number
   assignments: BulkAssignmentInput[]
+  syntheticResidents?: SyntheticResidentInput[]
 }
 
 export const bulkAssignmentsEndpoint: Endpoint = {
@@ -50,7 +61,7 @@ export const bulkAssignmentsEndpoint: Endpoint = {
       )
     }
 
-    const { candidateId, title, academicYearId, assignments } = body
+    const { candidateId, title, academicYearId, assignments, syntheticResidents } = body
 
     // Determine the tenant from the authenticated user so all created documents
     // satisfy the multi-tenant plugin's required tenant field.
@@ -62,12 +73,120 @@ export const bulkAssignmentsEndpoint: Endpoint = {
         limit: 1,
         depth: 0,
         overrideAccess: true,
+        req,
       })
       if (tenants.docs.length > 0) tenantId = tenants.docs[0].id
     }
 
     try {
-      // 1. Create the Schedule document linked to the candidate
+      // 0. Upsert synthetic residents and build frontendKey → backendId map
+      const residentIdMap: Record<string, number> = {}
+
+      if (syntheticResidents && syntheticResidents.length > 0) {
+        for (const sr of syntheticResidents) {
+          try {
+            // Try to find an existing synthetic resident with matching name + startYear
+            const existing = await req.payload.find({
+              collection: 'residents',
+              where: {
+                and: [
+                  { isSynthetic: { equals: true } },
+                  { firstName: { equals: sr.firstName } },
+                  { lastName: { equals: sr.lastName } },
+                  { startYear: { equals: sr.startYearId } },
+                ],
+              },
+              limit: 1,
+              depth: 0,
+              overrideAccess: true,
+              req,
+            })
+
+            if (existing.docs.length > 0) {
+              // Reuse existing synthetic resident
+              residentIdMap[sr.frontendKey] = existing.docs[0].id as number
+            } else {
+              // Create new synthetic resident
+              const created = await req.payload.create({
+                collection: 'residents',
+                data: {
+                  firstName: sr.firstName,
+                  lastName: sr.lastName,
+                  startYear: sr.startYearId,
+                  isSynthetic: true,
+                  ...(tenantId != null ? { tenant: tenantId } : {}),
+                },
+                overrideAccess: true,
+                req,
+              })
+              residentIdMap[sr.frontendKey] = created.id as number
+            }
+          } catch (srError) {
+            req.payload.logger.error(
+              `Failed to upsert synthetic resident "${sr.frontendKey}" (${sr.firstName} ${sr.lastName}): ${srError instanceof Error ? srError.message : srError}`,
+            )
+            // Continue with other synthetic residents — the unmapped key guard below
+            // will safely skip assignments referencing this failed resident.
+          }
+        }
+      }
+
+      // 1. Remap assignment residentIds — replace synthetic frontend keys with backend IDs
+      const unmappedKeys = new Set<string>()
+      const resolvedAssignments = assignments
+        .map((a) => {
+          if (typeof a.residentId === 'string') {
+            const mapped = residentIdMap[a.residentId]
+            if (mapped != null) {
+              return { ...a, residentId: mapped }
+            }
+            // Synthetic key not in residentIdMap — its creation likely failed
+            unmappedKeys.add(a.residentId)
+            return null // filter out below
+          }
+          return { ...a, residentId: a.residentId }
+        })
+        .filter((a): a is NonNullable<typeof a> => a !== null)
+
+      if (unmappedKeys.size > 0) {
+        req.payload.logger.warn(
+          `Skipped ${unmappedKeys.size} unmapped synthetic resident key(s): ${[...unmappedKeys].join(', ')}`,
+        )
+      }
+
+      // 1.5. Clean up any existing schedule (and assignments) for this candidate and academic year to prevent duplicates
+      const existingSchedules = await req.payload.find({
+        collection: 'schedules',
+        where: {
+          and: [
+            { candidate: { equals: candidateId } },
+            { academicYear: { equals: academicYearId } },
+          ],
+        },
+        limit: 10,
+        depth: 0,
+        overrideAccess: true,
+        req,
+      })
+
+      for (const ex of existingSchedules.docs) {
+        // Bulk delete child assignments
+        await req.payload.delete({
+          collection: 'schedule-assignments',
+          where: { schedule: { equals: ex.id } },
+          overrideAccess: true,
+          req,
+        })
+        // Delete the schedule itself
+        await req.payload.delete({
+          collection: 'schedules',
+          id: ex.id,
+          overrideAccess: true,
+          req,
+        })
+      }
+
+      // 2. Create the Schedule document linked to the candidate
       const schedule = await req.payload.create({
         collection: 'schedules',
         data: {
@@ -78,15 +197,16 @@ export const bulkAssignmentsEndpoint: Endpoint = {
           ...(tenantId != null ? { tenant: tenantId } : {}),
         },
         disableTransaction: false,
+        req,
       })
 
-      // 2. Batch-insert all ScheduleAssignment documents
+      // 3. Batch-insert all ScheduleAssignment documents
       // We use Promise.all with chunks to avoid overwhelming the DB
       const BATCH_SIZE = 100
       let insertedCount = 0
 
-      for (let i = 0; i < assignments.length; i += BATCH_SIZE) {
-        const batch = assignments.slice(i, i + BATCH_SIZE)
+      for (let i = 0; i < resolvedAssignments.length; i += BATCH_SIZE) {
+        const batch = resolvedAssignments.slice(i, i + BATCH_SIZE)
         await Promise.all(
           batch.map((a) =>
             req.payload.create({
@@ -101,13 +221,14 @@ export const bulkAssignmentsEndpoint: Endpoint = {
               },
               // Skip individual afterChange hooks — we broadcast in bulk below
               context: { skipSSEBroadcast: true },
+              req,
             }),
           ),
         )
         insertedCount += batch.length
       }
 
-      // 3. Broadcast a single bulk-sync event
+      // 4. Broadcast a single bulk-sync event
       await broadcast(candidateId, {
         event: 'schedule-created',
         data: {
@@ -122,6 +243,7 @@ export const bulkAssignmentsEndpoint: Endpoint = {
         {
           scheduleId: schedule.id,
           assignmentCount: insertedCount,
+          residentIdMap,
           message: `Created schedule "${title}" with ${insertedCount} assignments`,
         },
         { status: 201 },

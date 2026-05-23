@@ -122,7 +122,7 @@ export const GradRequirements: CollectionConfig = {
       label: 'PGY-Specific Milestone Ideals',
       admin: {
         description:
-          'Cumulative milestone targets by PGY level. Soft goals for catch-up scoring.',
+          'Incremental milestone targets by PGY level. Soft goals representing the additional weeks targeted for each specific year.',
       },
       fields: [
         {
@@ -133,7 +133,7 @@ export const GradRequirements: CollectionConfig = {
               type: 'number',
               min: 0,
               admin: {
-                description: 'Cumulative PGY-1 milestone ideal (weeks by end of PGY-1)',
+                description: 'Additional weeks targeted during PGY-1',
                 width: '33%',
               },
             },
@@ -142,7 +142,7 @@ export const GradRequirements: CollectionConfig = {
               type: 'number',
               min: 0,
               admin: {
-                description: 'Cumulative PGY-2 milestone ideal (weeks by end of PGY-2)',
+                description: 'Additional weeks targeted during PGY-2',
                 width: '33%',
               },
             },
@@ -151,7 +151,7 @@ export const GradRequirements: CollectionConfig = {
               type: 'number',
               min: 0,
               admin: {
-                description: 'Cumulative PGY-3 milestone ideal (weeks by end of PGY-3)',
+                description: 'Additional weeks targeted during PGY-3',
                 width: '33%',
               },
             },

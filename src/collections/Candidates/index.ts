@@ -30,26 +30,24 @@ export const Candidates: CollectionConfig = {
           where: { candidate: { equals: id } },
           limit: 100,
           depth: 0,
+          overrideAccess: true,
+          req,
         })
 
         for (const schedule of schedules.docs) {
-          // Delete all ScheduleAssignments for this Schedule
-          const assignments = await req.payload.find({
+          // Bulk delete all ScheduleAssignments for this Schedule
+          await req.payload.delete({
             collection: 'schedule-assignments',
             where: { schedule: { equals: schedule.id } },
-            limit: 10000,
-            depth: 0,
+            overrideAccess: true,
+            req,
           })
-          for (const assignment of assignments.docs) {
-            await req.payload.delete({
-              collection: 'schedule-assignments',
-              id: assignment.id,
-            })
-          }
           // Delete the Schedule itself
           await req.payload.delete({
             collection: 'schedules',
             id: schedule.id,
+            overrideAccess: true,
+            req,
           })
         }
       },

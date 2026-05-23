@@ -24,3 +24,5 @@ tsconfig.tsbuildinfo
 
 # Next.js
 next-env.d.ts
+dev.log
+scratch_test_bulk.ts
