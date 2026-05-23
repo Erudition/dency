@@ -269,6 +269,10 @@ export interface Resident {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  /**
+   * Auto-generated placeholder for future-year scheduling. Cleaned up when real residents are enrolled.
+   */
+  isSynthetic?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -927,6 +931,7 @@ export interface ResidentsSelect<T extends boolean = true> {
   leaveReason?: T;
   avoidanceRules?: T;
   transferCredits?: T;
+  isSynthetic?: T;
   updatedAt?: T;
   createdAt?: T;
 }
