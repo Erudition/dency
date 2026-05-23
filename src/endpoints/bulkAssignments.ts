@@ -146,21 +146,12 @@ export const bulkAssignmentsEndpoint: Endpoint = {
       })
 
       for (const ex of existingSchedules.docs) {
-        // Delete child assignments first
-        const exAssignments = await req.payload.find({
+        // Bulk delete child assignments
+        await req.payload.delete({
           collection: 'schedule-assignments',
           where: { schedule: { equals: ex.id } },
-          limit: 10000,
-          depth: 0,
           overrideAccess: true,
         })
-        for (const ass of exAssignments.docs) {
-          await req.payload.delete({
-            collection: 'schedule-assignments',
-            id: ass.id,
-            overrideAccess: true,
-          })
-        }
         // Delete the schedule itself
         await req.payload.delete({
           collection: 'schedules',
