@@ -168,6 +168,7 @@ export const Residents: CollectionConfig = {
             },
             limit: 100,
             depth: 0,
+            overrideAccess: true,
           })
 
           if (synthetics.docs.length > 0) {
@@ -179,6 +180,7 @@ export const Residents: CollectionConfig = {
                 req.payload.delete({
                   collection: 'residents',
                   id: doc.id,
+                  overrideAccess: true,
                 }),
               ),
             )
