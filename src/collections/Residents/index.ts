@@ -169,6 +169,7 @@ export const Residents: CollectionConfig = {
             limit: 100,
             depth: 0,
             overrideAccess: true,
+            req,
           })
 
           if (synthetics.docs.length > 0) {
@@ -181,6 +182,7 @@ export const Residents: CollectionConfig = {
                   collection: 'residents',
                   id: doc.id,
                   overrideAccess: true,
+                  req,
                 }),
               ),
             )

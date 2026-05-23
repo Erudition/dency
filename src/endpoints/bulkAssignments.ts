@@ -73,6 +73,7 @@ export const bulkAssignmentsEndpoint: Endpoint = {
         limit: 1,
         depth: 0,
         overrideAccess: true,
+        req,
       })
       if (tenants.docs.length > 0) tenantId = tenants.docs[0].id
     }
@@ -83,53 +84,75 @@ export const bulkAssignmentsEndpoint: Endpoint = {
 
       if (syntheticResidents && syntheticResidents.length > 0) {
         for (const sr of syntheticResidents) {
-          // Try to find an existing synthetic resident with matching name + startYear
-          const existing = await req.payload.find({
-            collection: 'residents',
-            where: {
-              and: [
-                { isSynthetic: { equals: true } },
-                { firstName: { equals: sr.firstName } },
-                { lastName: { equals: sr.lastName } },
-                { startYear: { equals: sr.startYearId } },
-              ],
-            },
-            limit: 1,
-            depth: 0,
-            overrideAccess: true,
-          })
-
-          if (existing.docs.length > 0) {
-            // Reuse existing synthetic resident
-            residentIdMap[sr.frontendKey] = existing.docs[0].id as number
-          } else {
-            // Create new synthetic resident
-            const created = await req.payload.create({
+          try {
+            // Try to find an existing synthetic resident with matching name + startYear
+            const existing = await req.payload.find({
               collection: 'residents',
-              data: {
-                firstName: sr.firstName,
-                lastName: sr.lastName,
-                startYear: sr.startYearId,
-                isSynthetic: true,
-                ...(tenantId != null ? { tenant: tenantId } : {}),
+              where: {
+                and: [
+                  { isSynthetic: { equals: true } },
+                  { firstName: { equals: sr.firstName } },
+                  { lastName: { equals: sr.lastName } },
+                  { startYear: { equals: sr.startYearId } },
+                ],
               },
+              limit: 1,
+              depth: 0,
               overrideAccess: true,
+              req,
             })
-            residentIdMap[sr.frontendKey] = created.id as number
+
+            if (existing.docs.length > 0) {
+              // Reuse existing synthetic resident
+              residentIdMap[sr.frontendKey] = existing.docs[0].id as number
+            } else {
+              // Create new synthetic resident
+              const created = await req.payload.create({
+                collection: 'residents',
+                data: {
+                  firstName: sr.firstName,
+                  lastName: sr.lastName,
+                  startYear: sr.startYearId,
+                  isSynthetic: true,
+                  ...(tenantId != null ? { tenant: tenantId } : {}),
+                },
+                overrideAccess: true,
+                req,
+              })
+              residentIdMap[sr.frontendKey] = created.id as number
+            }
+          } catch (srError) {
+            req.payload.logger.error(
+              `Failed to upsert synthetic resident "${sr.frontendKey}" (${sr.firstName} ${sr.lastName}): ${srError instanceof Error ? srError.message : srError}`,
+            )
+            // Continue with other synthetic residents — the unmapped key guard below
+            // will safely skip assignments referencing this failed resident.
           }
         }
       }
 
       // 1. Remap assignment residentIds — replace synthetic frontend keys with backend IDs
-      const resolvedAssignments = assignments.map((a) => {
-        const residentId =
-          typeof a.residentId === 'string' && residentIdMap[a.residentId]
-            ? residentIdMap[a.residentId]
-            : typeof a.residentId === 'string'
-              ? parseInt(a.residentId, 10)
-              : a.residentId
-        return { ...a, residentId }
-      })
+      const unmappedKeys = new Set<string>()
+      const resolvedAssignments = assignments
+        .map((a) => {
+          if (typeof a.residentId === 'string') {
+            const mapped = residentIdMap[a.residentId]
+            if (mapped != null) {
+              return { ...a, residentId: mapped }
+            }
+            // Synthetic key not in residentIdMap — its creation likely failed
+            unmappedKeys.add(a.residentId)
+            return null // filter out below
+          }
+          return { ...a, residentId: a.residentId }
+        })
+        .filter((a): a is NonNullable<typeof a> => a !== null)
+
+      if (unmappedKeys.size > 0) {
+        req.payload.logger.warn(
+          `Skipped ${unmappedKeys.size} unmapped synthetic resident key(s): ${[...unmappedKeys].join(', ')}`,
+        )
+      }
 
       // 1.5. Clean up any existing schedule (and assignments) for this candidate and academic year to prevent duplicates
       const existingSchedules = await req.payload.find({
@@ -143,6 +166,7 @@ export const bulkAssignmentsEndpoint: Endpoint = {
         limit: 10,
         depth: 0,
         overrideAccess: true,
+        req,
       })
 
       for (const ex of existingSchedules.docs) {
@@ -151,12 +175,14 @@ export const bulkAssignmentsEndpoint: Endpoint = {
           collection: 'schedule-assignments',
           where: { schedule: { equals: ex.id } },
           overrideAccess: true,
+          req,
         })
         // Delete the schedule itself
         await req.payload.delete({
           collection: 'schedules',
           id: ex.id,
           overrideAccess: true,
+          req,
         })
       }
 
@@ -171,6 +197,7 @@ export const bulkAssignmentsEndpoint: Endpoint = {
           ...(tenantId != null ? { tenant: tenantId } : {}),
         },
         disableTransaction: false,
+        req,
       })
 
       // 3. Batch-insert all ScheduleAssignment documents
@@ -194,6 +221,7 @@ export const bulkAssignmentsEndpoint: Endpoint = {
               },
               // Skip individual afterChange hooks — we broadcast in bulk below
               context: { skipSSEBroadcast: true },
+              req,
             }),
           ),
         )

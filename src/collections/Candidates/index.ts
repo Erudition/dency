@@ -31,6 +31,7 @@ export const Candidates: CollectionConfig = {
           limit: 100,
           depth: 0,
           overrideAccess: true,
+          req,
         })
 
         for (const schedule of schedules.docs) {
@@ -39,12 +40,14 @@ export const Candidates: CollectionConfig = {
             collection: 'schedule-assignments',
             where: { schedule: { equals: schedule.id } },
             overrideAccess: true,
+            req,
           })
           // Delete the Schedule itself
           await req.payload.delete({
             collection: 'schedules',
             id: schedule.id,
             overrideAccess: true,
+            req,
           })
         }
       },
