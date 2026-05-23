@@ -38,7 +38,11 @@ export const bulkAssignmentsEndpoint: Endpoint = {
       return Response.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    const body = req.data as BulkRequestBody | undefined
+    // Payload's addDataAndFileToRequest middleware only runs for collection/global
+    // routes, NOT for root custom endpoints. For custom endpoints we must parse
+    // the body directly.
+    const body = (await (req as Request).json().catch(() => null)) as BulkRequestBody | null
+
     if (!body?.candidateId || !body?.title || !body?.academicYearId || !body?.assignments) {
       return Response.json(
         { error: 'Missing required fields: candidateId, title, academicYearId, assignments' },
