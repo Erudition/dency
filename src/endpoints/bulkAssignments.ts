@@ -131,6 +131,44 @@ export const bulkAssignmentsEndpoint: Endpoint = {
         return { ...a, residentId }
       })
 
+      // 1.5. Clean up any existing schedule (and assignments) for this candidate and academic year to prevent duplicates
+      const existingSchedules = await req.payload.find({
+        collection: 'schedules',
+        where: {
+          and: [
+            { candidate: { equals: candidateId } },
+            { academicYear: { equals: academicYearId } },
+          ],
+        },
+        limit: 10,
+        depth: 0,
+        overrideAccess: true,
+      })
+
+      for (const ex of existingSchedules.docs) {
+        // Delete child assignments first
+        const exAssignments = await req.payload.find({
+          collection: 'schedule-assignments',
+          where: { schedule: { equals: ex.id } },
+          limit: 10000,
+          depth: 0,
+          overrideAccess: true,
+        })
+        for (const ass of exAssignments.docs) {
+          await req.payload.delete({
+            collection: 'schedule-assignments',
+            id: ass.id,
+            overrideAccess: true,
+          })
+        }
+        // Delete the schedule itself
+        await req.payload.delete({
+          collection: 'schedules',
+          id: ex.id,
+          overrideAccess: true,
+        })
+      }
+
       // 2. Create the Schedule document linked to the candidate
       const schedule = await req.payload.create({
         collection: 'schedules',
