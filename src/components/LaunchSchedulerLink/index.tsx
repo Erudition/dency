@@ -10,10 +10,6 @@ import React from 'react'
  * cookie-based token and redirects to the frontend with ?token=...
  */
 export default function LaunchSchedulerLink() {
-  // Only show in development
-  if (process.env.NODE_ENV !== 'development' && process.env.NEXT_PUBLIC_NODE_ENV !== 'development') {
-    return null
-  }
 
   return (
     <a
