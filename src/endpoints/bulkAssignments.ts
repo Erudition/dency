@@ -50,7 +50,17 @@ export const bulkAssignmentsEndpoint: Endpoint = {
 
     // Determine the tenant from the authenticated user so all created documents
     // satisfy the multi-tenant plugin's required tenant field.
-    const [tenantId] = getUserTenantIDs(req.user)
+    let [tenantId] = getUserTenantIDs(req.user)
+    if (tenantId == null) {
+      // Super-admin has no explicit tenant assignments; fall back to first DB tenant
+      const tenants = await req.payload.find({
+        collection: 'tenants',
+        limit: 1,
+        depth: 0,
+        overrideAccess: true,
+      })
+      if (tenants.docs.length > 0) tenantId = tenants.docs[0].id
+    }
 
     try {
       // 1. Create the Schedule document linked to the candidate
