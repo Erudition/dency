@@ -35,6 +35,7 @@ const dirname = path.dirname(filename)
 export default buildConfig({
   cors: [
     'https://erudition.github.io',
+    ...(process.env.PAYLOAD_PUBLIC_SERVER_URL ? [process.env.PAYLOAD_PUBLIC_SERVER_URL] : []),
     ...(process.env.NODE_ENV === 'development' ? ['http://localhost:5173'] : []),
   ],
   endpoints: [scheduleSSEEndpoint, bulkAssignmentsEndpoint, launchSchedulerEndpoint],
