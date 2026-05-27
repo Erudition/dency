@@ -175,7 +175,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
             INSERT INTO "schedules_rels" ("parent_id", "path", "residents_id", "order")
             VALUES (
               ${schedId},
-              ${'cycleConfig.cohorts.' + cohortId + '.residents'},
+              ${'cycleConfig.cohorts.' + (cycle.number - 1) + '.residents'},
               ${res.residents_id},
               ${res.order}
             )
