@@ -122,7 +122,6 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
       collection: 'academic-years',
       data: {
         startingYear: year,
-        clinicWeeksPerCycle: 1,
       },
     })
     ayMap[year] = ay.id
@@ -378,39 +377,22 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
     }
   }
 
-  for (const year of [2024, 2025, 2026]) {
-    // Set clinicWeeksPerCycle = 1 on the Academic Year
-    await payload.update({
-      collection: 'academic-years',
-      id: ayMap[year],
-      data: { clinicWeeksPerCycle: 1 },
-    })
-
-    // Create 5 clinic cycle cohorts for each year
-    for (let cycleNum = 1; cycleNum <= 5; cycleNum++) {
-      const yearCohorts = HISTORICAL_COHORTS[year] || {}
-      const assignedResidentIds: number[] = []
-
+  // Helper: build cohort arrays from HISTORICAL_COHORTS for embedding in schedules
+  function buildCohorts(year: number, cohortCount: number): Array<{ residents: number[] }> {
+    const yearCohorts = HISTORICAL_COHORTS[year] || {}
+    const cohorts: Array<{ residents: number[] }> = []
+    for (let i = 0; i < cohortCount; i++) {
+      const residentIds: number[] = []
       for (const [fullName, cohortNum] of Object.entries(yearCohorts)) {
-        if (cohortNum === cycleNum) {
+        // HISTORICAL_COHORTS uses 1-based cohort numbers; cohort array index is 0-based
+        if (cohortNum === i + 1) {
           const resId = residentMap[fullName]
-          if (resId) {
-            assignedResidentIds.push(resId)
-          }
+          if (resId) residentIds.push(resId)
         }
       }
-
-      await payload.create({
-        collection: 'clinic-cycles',
-        data: {
-          number: cycleNum,
-          label: `Clinic Cycle ${cycleNum}`,
-          academicYear: ayMap[year],
-          residents: assignedResidentIds,
-          tenant: tenantId,
-        },
-      })
+      cohorts.push({ residents: residentIds })
     }
+    return cohorts
   }
   
   // ─── Historical Schedules & Assignments ───
@@ -430,6 +412,10 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
           academicYear: ayMap[yearNum],
           _status: 'published',
           tenant: tenantId,
+          cycleConfig: {
+            clinicWeeksPerCycle: 1,
+            cohorts: buildCohorts(yearNum, 5),
+          },
         }
       })
 

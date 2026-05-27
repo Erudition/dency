@@ -27,9 +27,13 @@ async function resetAndSeed() {
         "transfer_credits",
         "avoidance_rules",
         "schedules",
+        "schedules_cycle_config_cohorts",
+        "schedules_rels",
         "_schedules_v",
+        "_schedules_v_version_cycle_config_cohorts",
+        "_schedules_v_rels",
         "schedule_assignments",
-        "clinic_cycles",
+        "candidates",
         "payload_preferences",
         "payload_locked_documents"
       CASCADE;

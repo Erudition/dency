@@ -175,5 +175,48 @@ export const Schedules: CollectionConfig = {
       collection: 'schedule-assignments',
       on: 'schedule',
     },
+    {
+      name: 'cycleConfig',
+      type: 'group',
+      admin: {
+        description:
+          'X+Y clinic cycle configuration for this schedule. ' +
+          'Cohort count = number of rows. Y = clinic weeks per cycle. ' +
+          'X (inpatient block length) = (cohortCount × Y) − Y.',
+      },
+      fields: [
+        {
+          name: 'clinicWeeksPerCycle',
+          type: 'number',
+          min: 1,
+          defaultValue: 1,
+          admin: {
+            description:
+              'Y in the X+Y model: how many consecutive weeks each cohort spends in clinic per cycle. ' +
+              'Most programs use 1 (4+1). Some use 2 (4+2 or 6+2).',
+          },
+        },
+        {
+          name: 'cohorts',
+          type: 'array',
+          admin: {
+            description:
+              'Each row is a clinic cycle cohort. Row order = cohort index (0-based). ' +
+              'Add or remove rows to change the X+Y model (e.g. 5 rows + Y=1 → 4+1, 4 rows + Y=1 → 3+1).',
+          },
+          fields: [
+            {
+              name: 'residents',
+              type: 'relationship',
+              relationTo: 'residents',
+              hasMany: true,
+              admin: {
+                description: 'Residents assigned to this clinic cycle cohort.',
+              },
+            },
+          ],
+        },
+      ],
+    },
   ],
 }

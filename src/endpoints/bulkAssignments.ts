@@ -38,6 +38,10 @@ interface BulkRequestBody {
   academicYearId: number
   assignments: BulkAssignmentInput[]
   syntheticResidents?: SyntheticResidentInput[]
+  cycleConfig?: {
+    clinicWeeksPerCycle: number
+    cohorts: Array<{ residentIds: number[] }>
+  }
 }
 
 export const bulkAssignmentsEndpoint: Endpoint = {
@@ -61,7 +65,7 @@ export const bulkAssignmentsEndpoint: Endpoint = {
       )
     }
 
-    const { candidateId, title, academicYearId, assignments, syntheticResidents } = body
+    const { candidateId, title, academicYearId, assignments, syntheticResidents, cycleConfig } = body
 
     // Determine the tenant from the authenticated user so all created documents
     // satisfy the multi-tenant plugin's required tenant field.
@@ -195,6 +199,14 @@ export const bulkAssignmentsEndpoint: Endpoint = {
           candidate: candidateId,
           _status: 'published',
           ...(tenantId != null ? { tenant: tenantId } : {}),
+          ...(cycleConfig ? {
+            cycleConfig: {
+              clinicWeeksPerCycle: cycleConfig.clinicWeeksPerCycle,
+              cohorts: cycleConfig.cohorts.map(c => ({
+                residents: c.residentIds,
+              })),
+            },
+          } : {}),
         },
         disableTransaction: false,
         req,

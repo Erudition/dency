@@ -16,7 +16,7 @@ import { TransferCredits } from './collections/TransferCredits'
 import { AvoidanceRules } from './collections/AvoidanceRules'
 import { Schedules } from './collections/Schedules'
 import { ScheduleAssignments } from './collections/ScheduleAssignments'
-import { ClinicCycles } from './collections/ClinicCycles'
+
 import { Candidates } from './collections/Candidates'
 
 import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
@@ -65,7 +65,7 @@ export default buildConfig({
     Candidates,
     Schedules,
     ScheduleAssignments,
-    ClinicCycles,
+
   ],
   db: postgresAdapter({
     pool: {
@@ -102,7 +102,7 @@ export default buildConfig({
         'candidates': {},
         'schedules': {},
         'schedule-assignments': {},
-        'clinic-cycles': {},
+
       },
       tenantField: {
         access: {
