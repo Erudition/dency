@@ -88,7 +88,6 @@ export interface Config {
   };
   collectionsJoins: {
     'academic-years': {
-      clinicCycles: 'clinic-cycles';
       annualRequirements: 'annual-requirements';
     };
     tags: {
@@ -285,18 +284,9 @@ export interface AcademicYear {
   startingYear: number;
   title?: string | null;
   /**
-   * Y in X+Y: how many consecutive weeks each cohort spends in clinic per cycle. Most programs use 1 (4+1). Some use 2 (4+2 or 6+2).
-   */
-  clinicWeeksPerCycle: number;
-  /**
    * The official historical schedule for this academic year. Set automatically when a schedule is exported with the promotion checkbox.
    */
   canonicalSchedule?: (number | null) | Schedule;
-  clinicCycles?: {
-    docs?: (number | ClinicCycle)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
   annualRequirements?: {
     docs?: (number | AnnualRequirement)[];
     hasNextPage?: boolean;
@@ -322,6 +312,27 @@ export interface Schedule {
     docs?: (number | ScheduleAssignment)[];
     hasNextPage?: boolean;
     totalDocs?: number;
+  };
+  /**
+   * X+Y clinic cycle configuration for this schedule. Cohort count = number of rows. Y = clinic weeks per cycle. X (inpatient block length) = (cohortCount × Y) − Y.
+   */
+  cycleConfig?: {
+    /**
+     * Y in the X+Y model: how many consecutive weeks each cohort spends in clinic per cycle. Most programs use 1 (4+1). Some use 2 (4+2 or 6+2).
+     */
+    clinicWeeksPerCycle?: number | null;
+    /**
+     * Each row is a clinic cycle cohort. Row order = cohort index (0-based). Add or remove rows to change the X+Y model (e.g. 5 rows + Y=1 → 4+1, 4 rows + Y=1 → 3+1).
+     */
+    cohorts?:
+      | {
+          /**
+           * Residents assigned to this clinic cycle cohort.
+           */
+          residents?: (number | Resident)[] | null;
+          id?: string | null;
+        }[]
+      | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -398,6 +409,10 @@ export interface Rotation {
    * Workload score (0 = no clinical work, 5 = maximum intensity)
    */
   intensity: number;
+  /**
+   * How many contiguous weeks the generator will try to schedule as a single block. Capped at X (inpatient span) for non-clinic rotations; fixed to Y (clinic weeks per cycle) for Clinic rotations. Leave blank to default to X.
+   */
+  preferredDuration?: number | null;
   /**
    * 0 = fully inpatient, 100 = fully ambulatory
    */
@@ -576,34 +591,6 @@ export interface AnnualRequirement {
   createdAt: string;
 }
 /**
- * Each document is a clinic cycle cohort in the X+Y model. The number of cohorts × Y (clinic weeks per cycle) = Z (total cycle length). Add or remove cohorts to experiment with different X+Y configurations.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "clinic-cycles".
- */
-export interface ClinicCycle {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  /**
-   * Cohort number (1-based). "Clinic Cycle 1" = clinic on the first week of the year.
-   */
-  number: number;
-  /**
-   * Auto-generated from cohort number
-   */
-  label?: string | null;
-  /**
-   * The academic year this cycle configuration applies to
-   */
-  academicYear: number | AcademicYear;
-  /**
-   * Residents assigned to this clinic cycle for this academic year
-   */
-  residents?: (number | Resident)[] | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * Pairs of residents who should not be co-scheduled.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -643,6 +630,34 @@ export interface TransferCredit {
    * Free text for additional context
    */
   notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Each document is a clinic cycle cohort in the X+Y model. The number of cohorts × Y (clinic weeks per cycle) = Z (total cycle length). Add or remove cohorts to experiment with different X+Y configurations.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clinic-cycles".
+ */
+export interface ClinicCycle {
+  id: number;
+  tenant?: (number | null) | Tenant;
+  /**
+   * Cohort number (1-based). "Clinic Cycle 1" = clinic on the first week of the year.
+   */
+  number: number;
+  /**
+   * Auto-generated from cohort number
+   */
+  label?: string | null;
+  /**
+   * The academic year this cycle configuration applies to
+   */
+  academicYear: number | AcademicYear;
+  /**
+   * Residents assigned to this clinic cycle for this academic year
+   */
+  residents?: (number | Resident)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -820,9 +835,7 @@ export interface TenantsSelect<T extends boolean = true> {
 export interface AcademicYearsSelect<T extends boolean = true> {
   startingYear?: T;
   title?: T;
-  clinicWeeksPerCycle?: T;
   canonicalSchedule?: T;
-  clinicCycles?: T;
   annualRequirements?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -851,6 +864,7 @@ export interface RotationsSelect<T extends boolean = true> {
   title?: T;
   codename?: T;
   intensity?: T;
+  preferredDuration?: T;
   outpatientPercentage?: T;
   color?: T;
   isFlexible?: T;
@@ -983,6 +997,17 @@ export interface SchedulesSelect<T extends boolean = true> {
   academicYear?: T;
   candidate?: T;
   scheduleAssignments?: T;
+  cycleConfig?:
+    | T
+    | {
+        clinicWeeksPerCycle?: T;
+        cohorts?:
+          | T
+          | {
+              residents?: T;
+              id?: T;
+            };
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

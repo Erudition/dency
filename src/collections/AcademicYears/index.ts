@@ -60,18 +60,6 @@ export const AcademicYears: CollectionConfig = {
       },
     },
     {
-      name: 'clinicWeeksPerCycle',
-      type: 'number',
-      required: true,
-      defaultValue: 1,
-      min: 1,
-      admin: {
-        description:
-          'Y in X+Y: how many consecutive weeks each cohort spends in clinic per cycle. ' +
-          'Most programs use 1 (4+1). Some use 2 (4+2 or 6+2).',
-      },
-    },
-    {
       name: 'canonicalSchedule',
       type: 'relationship',
       relationTo: 'schedules',
@@ -80,12 +68,6 @@ export const AcademicYears: CollectionConfig = {
           'The official historical schedule for this academic year. ' +
           'Set automatically when a schedule is exported with the promotion checkbox.',
       },
-    },
-    {
-      name: 'clinicCycles',
-      type: 'join',
-      collection: 'clinic-cycles',
-      on: 'academicYear',
     },
     {
       name: 'annualRequirements',
