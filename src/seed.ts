@@ -165,6 +165,14 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
     if (r.category === 'Elective') {
       tagIds.push(tagMap['Individualized'])
     }
+    // Tag flexible subspecialty rotations as 'Elective' so the ELEC? placeholder can resolve to them
+    const ELECTIVE_CODENAMES = [
+      'CARDS', 'ID', 'NEPH', 'PULM', 'ONC', 'NEURO', 'RHEUM', 'GI',
+      'ADDM', 'ENDO', 'GERI', 'HPC', 'AMCS', 'CCMA', 'HF', 'ENT', 'PMNR', 'ANES',
+    ]
+    if (ELECTIVE_CODENAMES.includes(r.codename) && tagMap['Elective']) {
+      tagIds.push(tagMap['Elective'])
+    }
 
     const rotation = await payload.create({
       collection: 'rotations',
