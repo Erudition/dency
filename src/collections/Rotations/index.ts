@@ -80,6 +80,18 @@ export const Rotations: CollectionConfig = {
       },
     },
     {
+      name: 'preferredDuration',
+      type: 'number',
+      min: 1,
+      max: 12,
+      admin: {
+        description:
+          'How many contiguous weeks the generator will try to schedule as a single block. ' +
+          'Capped at X (inpatient span) for non-clinic rotations; fixed to Y (clinic weeks per cycle) for Clinic rotations. ' +
+          'Leave blank to default to X.',
+      },
+    },
+    {
       name: 'outpatientPercentage',
       type: 'number',
       required: true,
