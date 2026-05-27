@@ -80,7 +80,6 @@ export interface Config {
     candidates: Candidate;
     schedules: Schedule;
     'schedule-assignments': ScheduleAssignment;
-    'clinic-cycles': ClinicCycle;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -120,7 +119,6 @@ export interface Config {
     candidates: CandidatesSelect<false> | CandidatesSelect<true>;
     schedules: SchedulesSelect<false> | SchedulesSelect<true>;
     'schedule-assignments': ScheduleAssignmentsSelect<false> | ScheduleAssignmentsSelect<true>;
-    'clinic-cycles': ClinicCyclesSelect<false> | ClinicCyclesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -634,34 +632,6 @@ export interface TransferCredit {
   createdAt: string;
 }
 /**
- * Each document is a clinic cycle cohort in the X+Y model. The number of cohorts × Y (clinic weeks per cycle) = Z (total cycle length). Add or remove cohorts to experiment with different X+Y configurations.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "clinic-cycles".
- */
-export interface ClinicCycle {
-  id: number;
-  tenant?: (number | null) | Tenant;
-  /**
-   * Cohort number (1-based). "Clinic Cycle 1" = clinic on the first week of the year.
-   */
-  number: number;
-  /**
-   * Auto-generated from cohort number
-   */
-  label?: string | null;
-  /**
-   * The academic year this cycle configuration applies to
-   */
-  academicYear: number | AcademicYear;
-  /**
-   * Residents assigned to this clinic cycle for this academic year
-   */
-  residents?: (number | Resident)[] | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -736,10 +706,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'schedule-assignments';
         value: number | ScheduleAssignment;
-      } | null)
-    | ({
-        relationTo: 'clinic-cycles';
-        value: number | ClinicCycle;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1023,19 +989,6 @@ export interface ScheduleAssignmentsSelect<T extends boolean = true> {
   week?: T;
   rotation?: T;
   locked?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "clinic-cycles_select".
- */
-export interface ClinicCyclesSelect<T extends boolean = true> {
-  tenant?: T;
-  number?: T;
-  label?: T;
-  academicYear?: T;
-  residents?: T;
   updatedAt?: T;
   createdAt?: T;
 }
