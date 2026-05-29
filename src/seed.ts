@@ -98,7 +98,7 @@ export const seed: NonNullable<Config['onInit']> = async (payload): Promise<void
     // ─── Tenant ───
   const mhsTenant = await payload.create({
     collection: 'tenants',
-    data: { name: 'MHS Internal Medicine', slug: 'mhs', domain: 'MHShealth.com' },
+    data: { name: 'MHS Internal Medicine', slug: 'mhs', domains: [{ domain: 'MHShealth.com' }] },
   })
   const tenantId = mhsTenant.id
 

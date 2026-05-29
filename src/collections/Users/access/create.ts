@@ -7,7 +7,8 @@ import { getUserTenantIDs } from '../../../utilities/getUserTenantIDs'
 
 export const createAccess: Access<User> = ({ req }) => {
   if (!req.user) {
-    return false
+    // Allow public registration - the beforeValidate hook will enforce tenant matching
+    return true
   }
 
   if (isSuperAdmin(req.user)) {

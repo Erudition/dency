@@ -26,11 +26,19 @@ export const Tenants: CollectionConfig = {
       unique: true,
     },
     {
-      name: 'domain',
-      type: 'text',
+      name: 'domains',
+      type: 'array',
       admin: {
-        description: 'Used for domain-based tenant handling',
+        description: 'Used for domain-based tenant handling. Users signing up with these domains will be automatically added to this tenant.',
       },
+      fields: [
+        {
+          name: 'domain',
+          type: 'text',
+          required: true,
+          unique: true,
+        },
+      ],
     },
     {
       name: 'slug',

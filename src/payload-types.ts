@@ -204,9 +204,14 @@ export interface Tenant {
   id: number;
   name: string;
   /**
-   * Used for domain-based tenant handling
+   * Used for domain-based tenant handling. Users signing up with these domains will be automatically added to this tenant.
    */
-  domain?: string | null;
+  domains?:
+    | {
+        domain: string;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Used for url paths, example: /tenant-slug/page-slug
    */
@@ -788,7 +793,12 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface TenantsSelect<T extends boolean = true> {
   name?: T;
-  domain?: T;
+  domains?:
+    | T
+    | {
+        domain?: T;
+        id?: T;
+      };
   slug?: T;
   allowPublicRead?: T;
   updatedAt?: T;

@@ -8,6 +8,8 @@ import { ensureUniqueUsername } from './hooks/ensureUniqueUsername'
 import { isSuperAdmin } from '@/access/isSuperAdmin'
 import { setCookieBasedOnDomain } from './hooks/setCookieBasedOnDomain'
 import { tenantsArrayField } from '@payloadcms/plugin-multi-tenant/fields'
+import { assignTenantFromEmail } from './hooks/assignTenantFromEmail'
+import { sanitizeTenants } from './hooks/sanitizeTenants'
 
 const defaultTenantArrayField = tenantsArrayField({
   tenantsArrayFieldName: 'tenants',
@@ -27,20 +29,7 @@ const defaultTenantArrayField = tenantsArrayField({
         { label: 'Viewer', value: 'tenant-viewer' },
       ],
       required: true,
-      access: {
-        update: ({ req }) => {
-          const { user } = req
-          if (!user) {
-            return false
-          }
-
-          if (isSuperAdmin(user)) {
-            return true
-          }
-
-          return true
-        },
-      },
+      // Access is governed by the sanitizeTenants beforeChange hook on the Users collection
     },
   ],
 })
@@ -97,9 +86,8 @@ const Users: CollectionConfig = {
         { label: 'User', value: 'user' },
       ],
       access: {
-        update: ({ req }) => {
-          return isSuperAdmin(req.user)
-        },
+        create: ({ req }) => isSuperAdmin(req.user),
+        update: ({ req }) => isSuperAdmin(req.user),
       },
     },
     {
@@ -132,6 +120,8 @@ const Users: CollectionConfig = {
   // a 'payload-tenant' cookie for that tenant.
 
   hooks: {
+    beforeValidate: [assignTenantFromEmail],
+    beforeChange: [sanitizeTenants],
     afterLogin: [setCookieBasedOnDomain],
   },
 }
