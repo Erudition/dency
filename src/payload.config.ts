@@ -57,6 +57,10 @@ export default buildConfig({
     components: {
       beforeNavLinks: ['@/components/WorkingYearSelector#default'],
       afterNavLinks: ['@/components/LaunchSchedulerLink#default'],
+      graphics: {
+        Logo: '@/components/Logo#Logo',
+        Icon: '@/components/Logo#Icon',
+      },
     },
   },
   collections: [
