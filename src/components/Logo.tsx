@@ -14,8 +14,8 @@ export const Logo: React.FC = () => {
         maskPosition: 'center',
         WebkitMaskPosition: 'center',
         backgroundColor: 'currentColor',
-        height: '40px',
-        width: '40px'
+        height: '100px',
+        width: '100px'
       }} />
     </div>
   )
