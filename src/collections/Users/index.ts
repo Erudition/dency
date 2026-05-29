@@ -45,6 +45,7 @@ const Users: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'email',
+    defaultColumns: ['email', 'resident', 'roles', 'username'],
     pagination: {
       defaultLimit: 100,
     },
