@@ -45,7 +45,7 @@ const Users: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'email',
-    defaultColumns: ['email', 'resident', 'roles', 'username'],
+    defaultColumns: ['email', 'resident', 'username'],
     pagination: {
       defaultLimit: 100,
     },
@@ -82,6 +82,7 @@ const Users: CollectionConfig = {
     {
       admin: {
         position: 'sidebar',
+        condition: (data, siblingData, { user }) => isSuperAdmin(user as any),
       },
       name: 'roles',
       type: 'select',
