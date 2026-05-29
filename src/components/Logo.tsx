@@ -2,6 +2,8 @@ import React from 'react'
 
 const SvgContent = ({ style }: { style?: React.CSSProperties }) => (
   <svg
+    width="100%"
+    height="100%"
     viewBox="0 0 386.5 381.6"
     xmlns="http://www.w3.org/2000/svg"
     style={style}
