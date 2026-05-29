@@ -35,6 +35,19 @@ const defaultTenantArrayField = tenantsArrayField({
   ],
 })
 
+const tenantField = defaultTenantArrayField.fields?.find(f => 'name' in f && f.name === 'tenant')
+if (tenantField && tenantField.type === 'relationship') {
+  tenantField.filterOptions = ({ req }) => {
+    if (isSuperAdmin(req.user as any)) return true
+    const tenantAdminIDs = getUserTenantIDs(req.user as any, 'tenant-admin')
+    return {
+      id: {
+        in: tenantAdminIDs,
+      },
+    }
+  }
+}
+
 const Users: CollectionConfig = {
   slug: 'users',
   access: {
