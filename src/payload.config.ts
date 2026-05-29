@@ -88,6 +88,7 @@ export default buildConfig({
     pool: {
       connectionString: process.env.POSTGRES_URL,
     },
+    push: false,
   }),
   onInit: async (args) => {
     if (process.env.SEED_DB) {
