@@ -3,6 +3,7 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 
 import { Tenants } from './collections/Tenants'
 import Users from './collections/Users'
@@ -38,6 +39,18 @@ export default buildConfig({
     ...(process.env.PAYLOAD_PUBLIC_SERVER_URL ? [process.env.PAYLOAD_PUBLIC_SERVER_URL] : []),
     ...(process.env.NODE_ENV === 'development' ? ['http://localhost:5173'] : []),
   ],
+  email: nodemailerAdapter({
+    defaultFromAddress: process.env.SMTP_FROM || 'noreply@example.com',
+    defaultFromName: 'Residency Optimizer',
+    transportOptions: {
+      host: process.env.SMTP_HOST || '',
+      port: Number(process.env.SMTP_PORT) || 587,
+      auth: {
+        user: process.env.SMTP_USER || '',
+        pass: process.env.SMTP_PASS || '',
+      },
+    },
+  }),
   endpoints: [scheduleSSEEndpoint, bulkAssignmentsEndpoint, launchSchedulerEndpoint],
   admin: {
     user: 'users',
