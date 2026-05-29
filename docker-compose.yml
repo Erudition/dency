@@ -31,6 +31,11 @@ services:
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-6c63db79af25713a563191e8}
       PAYLOAD_PUBLIC_SERVER_URL: ${SERVICE_URL_PAYLOAD:-http://localhost:3000}
       SEED_DB: ${SEED_DB:-true}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
       NODE_OPTIONS: --no-deprecation
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1"]
