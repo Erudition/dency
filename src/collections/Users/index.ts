@@ -6,6 +6,7 @@ import { updateAndDeleteAccess } from './access/updateAndDelete'
 import { externalUsersLogin } from './endpoints/externalUsersLogin'
 import { ensureUniqueUsername } from './hooks/ensureUniqueUsername'
 import { isSuperAdmin } from '@/access/isSuperAdmin'
+import { getUserTenantIDs } from '@/utilities/getUserTenantIDs'
 import { setCookieBasedOnDomain } from './hooks/setCookieBasedOnDomain'
 import { tenantsArrayField } from '@payloadcms/plugin-multi-tenant/fields'
 import { assignTenantFromEmail } from './hooks/assignTenantFromEmail'
@@ -47,7 +48,11 @@ const Users: CollectionConfig = {
     pagination: {
       defaultLimit: 100,
     },
-    hidden: ({ user }) => !isSuperAdmin(user as any),
+    hidden: ({ user }) => {
+      if (isSuperAdmin(user as any)) return false
+      const tenantAdminIDs = getUserTenantIDs(user as any, 'tenant-admin')
+      return tenantAdminIDs.length === 0
+    },
   },
   auth: true,
   endpoints: [externalUsersLogin],
