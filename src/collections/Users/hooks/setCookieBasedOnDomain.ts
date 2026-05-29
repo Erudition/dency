@@ -8,7 +8,7 @@ export const setCookieBasedOnDomain: CollectionAfterLoginHook = async ({ req, us
     depth: 0,
     limit: 1,
     where: {
-      domain: {
+      'domains.domain': {
         equals: req.headers.get('host'),
       },
     },
